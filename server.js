@@ -15,7 +15,43 @@ app.use(express.static('public'));
 const players = new Map();
 const commands = new Map();
 const chatHistory = new Map();
-const executionResults = new Map(); // Pour stocker les résultats d'exécution Lua
+const executionResults = new Map();
+const logs = new Map();
+
+// Fonction pour ajouter un log
+function addLog(userid, type, action, details = {}) {
+    if (!logs.has(userid.toString())) {
+        logs.set(userid.toString(), []);
+    }
+    
+    const logEntry = {
+        timestamp: Date.now(),
+        type,
+        action,
+        details,
+        date: new Date().toISOString()
+    };
+    
+    logs.get(userid.toString()).unshift(logEntry);
+    
+    if (logs.get(userid.toString()).length > 500) {
+        logs.get(userid.toString()).pop();
+    }
+    
+    console.log(`📋 Log added for ${userid}: [${type}] ${action}`);
+}
+
+// API pour obtenir les logs
+app.get('/logs/:userid', (req, res) => {
+    try {
+        const { userid } = req.params;
+        const userLogs = logs.get(userid.toString()) || [];
+        res.json(userLogs);
+    } catch (error) {
+        console.error('❌ Error in /logs:', error);
+        res.status(500).json([]);
+    }
+});
 
 // API pour obtenir l'historique du chat
 app.get('/chat/:userid', (req, res) => {
@@ -62,6 +98,12 @@ app.post('/exec-result', (req, res) => {
             timestamp: Date.now()
         });
 
+        addLog(userid, 'exec', success ? 'Code executed successfully' : 'Code execution failed', {
+            success,
+            result: result ? result.substring(0, 100) : '',
+            error: error || ''
+        });
+
         console.log(`📊 Execution result received from ${userid}:`, { success, hasResult: !!result });
         res.json({ success: true });
     } catch (error) {
@@ -92,6 +134,14 @@ app.post('/api', (req, res) => {
                 lastSeen: Date.now(),
                 status: 'online'
             });
+            
+            addLog(userid, 'system', 'Player connected', {
+                username,
+                executor,
+                game,
+                ip
+            });
+            
             console.log(`✅ Player registered: ${username} (${userid})`);
             return res.json({ success: true });
         }
@@ -148,11 +198,9 @@ app.post('/command', (req, res) => {
         const commandData = {};
         
         if (chatMessage) {
-            // Message chat
             commandData.chatMessage = chatMessage;
             commandData.chatSender = chatSender || 'ADMIN';
             
-            // Ajouter à l'historique
             if (!chatHistory.has(userid.toString())) {
                 chatHistory.set(userid.toString(), []);
             }
@@ -162,8 +210,12 @@ app.post('/command', (req, res) => {
                 timestamp: Date.now(),
                 isAdmin: true
             });
+            
+            addLog(userid, 'chat', 'Admin message sent', {
+                sender: chatSender || 'ADMIN',
+                message: chatMessage.substring(0, 50)
+            });
         } else {
-            // Commande normale
             commandData.command = command;
             if (reason !== undefined) commandData.reason = reason;
             if (assetId !== undefined) commandData.assetId = assetId;
@@ -175,6 +227,20 @@ app.post('/command', (req, res) => {
             if (luaCode !== undefined) commandData.luaCode = luaCode;
             if (power !== undefined) commandData.power = power;
             if (height !== undefined) commandData.height = height;
+            
+            const details = {};
+            if (reason) details.reason = reason;
+            if (assetId) details.assetId = assetId;
+            if (speed) details.speed = speed;
+            if (text) details.text = text.substring(0, 50);
+            if (imageUrl) details.imageUrl = imageUrl;
+            if (size) details.size = size;
+            if (adminName) details.adminName = adminName;
+            if (luaCode) details.luaCode = luaCode.substring(0, 50);
+            if (power) details.power = power;
+            if (height) details.height = height;
+            
+            addLog(userid, 'command', `Command: ${command}`, details);
         }
 
         commands.set(userid.toString(), commandData);
@@ -213,6 +279,7 @@ app.delete('/player/:userid', (req, res) => {
         commands.delete(userid);
         chatHistory.delete(userid);
         executionResults.delete(userid);
+        logs.delete(userid);
         console.log(`🗑️ Player deleted: ${userid}`);
         res.json({ success: true });
     } catch (error) {
@@ -239,6 +306,10 @@ setInterval(() => {
     for (const [userid, player] of players.entries()) {
         if (now - player.lastSeen > 60000) {
             console.log(`🔴 Player timeout: ${player.username}`);
+            addLog(userid, 'system', 'Player disconnected (timeout)', {
+                username: player.username,
+                lastSeen: new Date(player.lastSeen).toISOString()
+            });
             players.delete(userid);
             commands.delete(userid);
             chatHistory.delete(userid);

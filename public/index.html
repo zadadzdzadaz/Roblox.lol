@@ -432,6 +432,18 @@
             color: var(--accent-danger);
         }
 
+        .log-filters {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .log-filters button {
+            flex: 1;
+            min-width: 100px;
+        }
+
         @media (max-width: 768px) {
             .players-grid {
                 grid-template-columns: 1fr;
@@ -473,7 +485,7 @@
         <div id="playersContainer" class="players-grid"></div>
     </div>
 
-    <!-- Modals existants -->
+    <!-- Modals -->
     <div id="kickModal" class="modal">
         <div class="modal-content">
             <h3>🚪 Kick Player</h3>
@@ -541,7 +553,6 @@
         </div>
     </div>
 
-    <!-- NOUVEAU: Modal Lua Executor -->
     <div id="luaModal" class="modal">
         <div class="modal-content large">
             <h3>💻 LUA EXECUTOR</h3>
@@ -558,7 +569,6 @@
         </div>
     </div>
 
-    <!-- NOUVEAU: Modal Jump Power -->
     <div id="jumpModal" class="modal">
         <div class="modal-content">
             <h3>⬆️ Set Jump Power</h3>
@@ -570,7 +580,6 @@
         </div>
     </div>
 
-    <!-- NOUVEAU: Modal Teleport -->
     <div id="teleportModal" class="modal">
         <div class="modal-content">
             <h3>🌀 Teleport Player</h3>
@@ -598,14 +607,36 @@
         </div>
     </div>
 
+    <div id="logsModal" class="modal">
+        <div class="modal-content large" style="max-height: 85vh;">
+            <h3 id="logsTitle">📋 PLAYER LOGS</h3>
+            <div class="log-filters">
+                <button class="btn btn-info" onclick="filterLogs('all')">All</button>
+                <button class="btn btn-success" onclick="filterLogs('command')">Commands</button>
+                <button class="btn btn-purple" onclick="filterLogs('exec')">Executions</button>
+                <button class="btn btn-pink" onclick="filterLogs('chat')">Chat</button>
+                <button class="btn btn-warning" onclick="filterLogs('system')">System</button>
+            </div>
+            <div id="logsContainer" style="height: 500px; overflow-y: auto; background: var(--bg-card); border: 2px solid rgba(0,255,136,0.2); border-radius: 10px; padding: 15px;">
+                <p style="color: var(--text-secondary); text-align: center;">Loading logs...</p>
+            </div>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="btn btn-danger" onclick="clearLogs()">🗑️ Clear Logs</button>
+                <button class="btn btn-success" onclick="exportLogs()">💾 Export</button>
+                <button class="btn btn-info" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentUserId = null;
         let currentUsername = null;
         let commandsSent = 0;
         let chatUpdateInterval = null;
         let luaEditor = null;
+        let currentLogs = [];
+        let logsFilter = 'all';
 
-        // Initialiser CodeMirror pour l'éditeur Lua
         function initLuaEditor() {
             if (!luaEditor) {
                 luaEditor = CodeMirror(document.getElementById('luaEditorContainer'), {
@@ -707,7 +738,6 @@
             }
         });
 
-        // NOUVEAU: Fonctions pour le Lua Executor
         function openLuaModal(userid, username) {
             currentUserId = userid;
             currentUsername = username;
@@ -736,7 +766,6 @@
             try {
                 await sendCommand(currentUserId, 'exec', { luaCode: code });
                 
-                // Attendre le résultat
                 let attempts = 0;
                 const checkResult = setInterval(async () => {
                     attempts++;
@@ -762,6 +791,89 @@
             } catch (error) {
                 outputText.innerHTML = `<span class="output-error">❌ Error: ${error.message}</span>`;
             }
+        }
+
+        async function loadLogs(userid) {
+            try {
+                const response = await fetch(`/logs/${userid}`);
+                currentLogs = await response.json();
+                displayLogs();
+            } catch (error) {
+                console.error('❌ Error loading logs:', error);
+            }
+        }
+
+        function displayLogs() {
+            const container = document.getElementById('logsContainer');
+            const filteredLogs = logsFilter === 'all' 
+                ? currentLogs 
+                : currentLogs.filter(log => log.type === logsFilter);
+            
+            if (filteredLogs.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No logs found.</p>';
+                return;
+            }
+
+            container.innerHTML = filteredLogs.map(log => {
+                const date = new Date(log.timestamp).toLocaleString();
+                let color = '#00ff88';
+                let icon = '📋';
+                
+                switch(log.type) {
+                    case 'command': color = '#00d4ff'; icon = '🎯'; break;
+                    case 'exec': color = '#aa00ff'; icon = '💻'; break;
+                    case 'chat': color = '#ff0099'; icon = '💬'; break;
+                    case 'system': color = '#ffaa00'; icon = '⚙️'; break;
+                }
+                
+                const detailsStr = Object.keys(log.details).length > 0 
+                    ? `<div style="margin-top: 5px; font-size: 11px; opacity: 0.8; white-space: pre-wrap;">${JSON.stringify(log.details, null, 2).substring(0, 200)}</div>`
+                    : '';
+                
+                return `
+                    <div style="background: rgba(0,0,0,0.3); padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid ${color};">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <span style="color: ${color}; font-weight: bold;">${icon} ${log.type.toUpperCase()}</span>
+                                <p style="margin: 5px 0; color: #fff;">${log.action}</p>
+                                ${detailsStr}
+                            </div>
+                            <span style="color: var(--text-secondary); font-size: 11px; white-space: nowrap; margin-left: 10px;">${date}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterLogs(type) {
+            logsFilter = type;
+            displayLogs();
+        }
+
+        function clearLogs() {
+            if (confirm('Are you sure you want to clear all logs for this player?')) {
+                currentLogs = [];
+                displayLogs();
+            }
+        }
+
+        function exportLogs() {
+            const dataStr = JSON.stringify(currentLogs, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `logs_${currentUsername}_${Date.now()}.json`;
+            link.click();
+        }
+
+        function openLogsModal(userid, username) {
+            currentUserId = userid;
+            currentUsername = username;
+            logsFilter = 'all';
+            document.getElementById('logsTitle').textContent = `📋 LOGS - ${username}`;
+            document.getElementById('logsModal').classList.add('active');
+            loadLogs(userid);
         }
 
         function openKickModal(userid) {
@@ -950,6 +1062,7 @@
                                 <button class="btn btn-info" onclick="sendCommand('${userid}', 'unsit')">🚶 Stand</button>
                                 <button class="btn btn-info" onclick="openMessageModal('${userid}')">💬 Message</button>
                                 <button class="btn btn-pink" onclick="openChatModal('${userid}', '${username}')">👁️ Chat</button>
+                                <button class="btn btn-warning btn-full" onclick="openLogsModal('${userid}', '${username}')">📋 View Logs</button>
                                 <button class="btn btn-danger btn-full" onclick="sendCommand('${userid}', 'kill')">☠️ KILL PLAYER</button>
                             </div>
                         </div>
