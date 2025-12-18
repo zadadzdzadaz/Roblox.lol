@@ -5,17 +5,17 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// IMPORTANT: Augmenter la limite de taille pour les requêtes JSON
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
-// Base de données en mémoire
+// Base de données en mémoire (optimisée)
 const players = new Map();
 const commands = new Map();
 
-// API pour enregistrement et heartbeat
+// API pour enregistrement et heartbeat (avec gestion d'erreur)
 app.post('/api', (req, res) => {
     try {
         const { action, userid, username, executor, ip, game, gameId, jobId } = req.body;
@@ -57,7 +57,7 @@ app.post('/api', (req, res) => {
     }
 });
 
-// API pour récupérer les commandes
+// API pour récupérer les commandes (avec gestion d'erreur)
 app.get('/api', (req, res) => {
     try {
         const { userid } = req.query;
@@ -101,10 +101,7 @@ app.post('/command', (req, res) => {
         commands.set(userid.toString(), commandData);
         console.log(`📤 Command queued for ${userid}:`, command);
 
-        res.json({ 
-            success: true, 
-            message: `Command "${command}" queued for player ${userid}` 
-        });
+        res.json({ success: true, message: `Command "${command}" queued for player ${userid}` });
     } catch (error) {
         console.error('❌ Error in /command:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -154,7 +151,6 @@ app.get('/health', (req, res) => {
 setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
-    
     for (const [userid, player] of players.entries()) {
         if (now - player.lastSeen > 60000) {
             console.log(`🔴 Player timeout: ${player.username}`);
@@ -163,7 +159,6 @@ setInterval(() => {
             cleaned++;
         }
     }
-    
     if (cleaned > 0) {
         console.log(`🧹 Cleaned ${cleaned} inactive player(s)`);
     }
@@ -179,7 +174,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`🚀 1337 Panel Server running on port ${PORT}`);
     console.log(`📡 Local: http://localhost:${PORT}`);

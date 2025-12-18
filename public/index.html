@@ -1,182 +1,281 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 1337 Panel</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// IMPORTANT: Augmenter la limite de taille pour les requêtes JSON
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static('public'));
-
-// Base de données en mémoire (optimisée)
-const players = new Map();
-const commands = new Map();
-
-// API pour enregistrement et heartbeat (avec gestion d'erreur)
-app.post('/api', (req, res) => {
-    try {
-        const { action, userid, username, executor, ip, game, gameId, jobId } = req.body;
-
-        if (!action || !userid) {
-            console.warn('⚠️ Missing required fields:', req.body);
-            return res.status(400).json({ success: false, error: 'Missing required fields' });
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        if (action === 'register') {
-            players.set(userid.toString(), {
-                userid,
-                username,
-                executor,
-                ip,
-                game,
-                gameId,
-                jobId,
-                lastSeen: Date.now(),
-                status: 'online'
-            });
-            console.log(`✅ Player registered: ${username} (${userid})`);
-            return res.json({ success: true });
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-card: #1a1f3a;
+            --accent-primary: #00ff88;
+            --accent-secondary: #00d4ff;
+            --accent-danger: #ff0055;
+            --accent-warning: #ffaa00;
+            --text-primary: #ffffff;
+            --text-secondary: #8b92b0;
+            --shadow-glow: 0 0 30px rgba(0, 255, 136, 0.3);
         }
 
-        if (action === 'heartbeat') {
-            const player = players.get(userid.toString());
-            if (player) {
-                player.lastSeen = Date.now();
-                player.status = 'online';
-            }
-            return res.json({ success: true });
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+            overflow-x: hidden;
         }
 
-        res.json({ success: false, error: 'Unknown action' });
-    } catch (error) {
-        console.error('❌ Error in /api POST:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// API pour récupérer les commandes (avec gestion d'erreur)
-app.get('/api', (req, res) => {
-    try {
-        const { userid } = req.query;
-        
-        if (!userid) {
-            return res.json({ command: null });
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
-        const command = commands.get(userid.toString());
-        
-        if (command) {
-            commands.delete(userid.toString());
-            console.log(`📨 Command retrieved by ${userid}:`, command);
-            return res.json(command);
+        header {
+            background: var(--bg-secondary);
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-glow);
+            position: relative;
+            overflow: hidden;
         }
 
-        res.json({ command: null });
-    } catch (error) {
-        console.error('❌ Error in /api GET:', error);
-        res.status(500).json({ command: null, error: error.message });
-    }
-});
-
-// API pour envoyer des commandes depuis le panel
-app.post('/command', (req, res) => {
-    try {
-        const { userid, command, reason, assetId, speed, text, imageUrl, size } = req.body;
-
-        if (!userid || !command) {
-            return res.status(400).json({ error: 'Missing userid or command' });
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            animation: scan 3s infinite;
         }
 
-        const commandData = { command };
-        if (reason !== undefined) commandData.reason = reason;
-        if (assetId !== undefined) commandData.assetId = assetId;
-        if (speed !== undefined) commandData.speed = speed;
-        if (text !== undefined) commandData.text = text;
-        if (imageUrl !== undefined) commandData.imageUrl = imageUrl;
-        if (size !== undefined) commandData.size = size;
-
-        commands.set(userid.toString(), commandData);
-        console.log(`📤 Command queued for ${userid}:`, command);
-
-        res.json({ success: true, message: `Command "${command}" queued for player ${userid}` });
-    } catch (error) {
-        console.error('❌ Error in /command:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// API pour obtenir la liste des joueurs
-app.get('/players', (req, res) => {
-    try {
-        const now = Date.now();
-        const playerList = Array.from(players.values()).map(player => ({
-            ...player,
-            status: (now - player.lastSeen < 15000) ? 'online' : 'offline'
-        }));
-        res.json(playerList);
-    } catch (error) {
-        console.error('❌ Error in /players:', error);
-        res.status(500).json([]);
-    }
-});
-
-// API pour supprimer un joueur
-app.delete('/player/:userid', (req, res) => {
-    try {
-        const { userid } = req.params;
-        players.delete(userid);
-        commands.delete(userid);
-        console.log(`🗑️ Player deleted: ${userid}`);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('❌ Error in /player DELETE:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        players: players.size,
-        commands: commands.size,
-        uptime: process.uptime()
-    });
-});
-
-// Nettoyage automatique des joueurs inactifs
-setInterval(() => {
-    const now = Date.now();
-    let cleaned = 0;
-    for (const [userid, player] of players.entries()) {
-        if (now - player.lastSeen > 60000) {
-            console.log(`🔴 Player timeout: ${player.username}`);
-            players.delete(userid);
-            commands.delete(userid);
-            cleaned++;
+        @keyframes scan {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
         }
-    }
-    if (cleaned > 0) {
-        console.log(`🧹 Cleaned ${cleaned} inactive player(s)`);
-    }
-}, 30000);
 
-// Gestion des erreurs globales
-app.use((err, req, res, next) => {
-    console.error('❌ Global error handler:', err);
-    res.status(500).json({ 
-        success: false, 
-        error: 'Internal server error',
-        message: err.message 
-    });
-});
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
 
-app.listen(PORT, () => {
-    console.log(`🚀 1337 Panel Server running on port ${PORT}`);
-    console.log(`📡 Local: http://localhost:${PORT}`);
-    console.log(`🌐 Network: http://0.0.0.0:${PORT}`);
-    console.log(`✅ Server ready to accept connections`);
-});
+        h1 {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card h3 {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .stat-card p {
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .player-card {
+            background: var(--bg-card);
+            border: 2px solid rgba(0, 255, 136, 0.15);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.05), transparent);
+            transition: left 0.5s;
+        }
+
+        .player-card:hover::before {
+            left: 100%;
+        }
+
+        .player-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--accent-primary);
+            box-shadow: 0 15px 50px rgba(0, 255, 136, 0.4);
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .player-info h2 {
+            color: var(--accent-primary);
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .player-id {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status.online {
+            background: linear-gradient(135deg, #00ff88, #00ffcc);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        .status.offline {
+            background: linear-gradient(135deg, #ff0055, #ff3366);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+        }
+
+        .player-details {
+            margin-bottom: 20px;
+            font-size: 0.85em;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.05);
+            transition: all 0.3s;
+        }
+
+        .detail-row:hover {
+            background: rgba(0, 255, 136, 0.03);
+            padding-left: 10px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: 700;
+            cursor: pointer;
