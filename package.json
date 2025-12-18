@@ -1,12 +1,12 @@
 {
-  "name": "roblox-control-panel",
-  "version": "1.0.0",
-  "description": "Panel de contrôle pour scripts Roblox",
+  "name": "1337-panel",
+  "version": "2.0.0",
+  "description": "1337 Panel - Advanced Roblox Control System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["roblox", "panel"],
+  "keywords": ["roblox", "panel", "1337", "control"],
   "author": "",
   "license": "MIT",
   "dependencies": {
