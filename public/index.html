@@ -589,9 +589,25 @@
         </div>
     </div>
 
+    <div id="chatModal" class="modal">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
+            <h3 id="chatTitle">💀 ADMIN CHAT</h3>
+            <div id="chatHistory" style="height: 400px; overflow-y: auto; background: var(--bg-card); border: 2px solid rgba(0,255,136,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                <p style="color: var(--text-secondary); text-align: center;">Loading chat history...</p>
+            </div>
+            <input type="text" id="chatMessageInput" placeholder="Type your message..." style="margin-bottom: 10px;" />
+            <div class="modal-buttons">
+                <button class="btn btn-success" onclick="sendChatMessage()">💀 SEND</button>
+                <button class="btn btn-info" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentUserId = null;
+        let currentUsername = null;
         let commandsSent = 0;
+        let chatUpdateInterval = null;
 
         async function sendCommand(userid, command, data = {}) {
             try {
@@ -608,6 +624,75 @@
                 console.error('❌ Error:', error);
             }
         }
+
+        async function sendChatToPlayer(userid, message, sender) {
+            try {
+                const response = await fetch('/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userid, 
+                        chatMessage: message,
+                        chatSender: sender
+                    })
+                });
+                const result = await response.json();
+                console.log('✅ Chat sent:', result);
+            } catch (error) {
+                console.error('❌ Error:', error);
+            }
+        }
+
+        async function loadChatHistory(userid) {
+            try {
+                const response = await fetch(`/chat/${userid}`);
+                const history = await response.json();
+                const chatDiv = document.getElementById('chatHistory');
+                
+                if (history.length === 0) {
+                    chatDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No messages yet. Start the conversation!</p>';
+                } else {
+                    chatDiv.innerHTML = history.map(msg => {
+                        const color = msg.isAdmin ? '#ff0055' : '#00ff88';
+                        const icon = msg.isAdmin ? '👁️' : '💬';
+                        return `<p style="color: ${color}; margin: 8px 0; font-size: 14px;"><strong>${icon} ${msg.sender}:</strong> ${msg.message}</p>`;
+                    }).join('');
+                }
+                
+                chatDiv.scrollTop = chatDiv.scrollHeight;
+            } catch (error) {
+                console.error('❌ Error loading chat:', error);
+            }
+        }
+
+        function openChatModal(userid, username) {
+            currentUserId = userid;
+            currentUsername = username;
+            document.getElementById('chatTitle').textContent = `💀 CHAT WITH ${username}`;
+            document.getElementById('chatModal').classList.add('active');
+            loadChatHistory(userid);
+            
+            if (chatUpdateInterval) clearInterval(chatUpdateInterval);
+            chatUpdateInterval = setInterval(() => loadChatHistory(userid), 2000);
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatMessageInput');
+            const message = input.value.trim();
+            const adminName = prompt('Enter your admin name:', 'SYSTEM ADMIN') || 'ADMIN';
+            
+            if (message && currentUserId) {
+                sendChatToPlayer(currentUserId, message, adminName);
+                input.value = '';
+                setTimeout(() => loadChatHistory(currentUserId), 500);
+            }
+        }
+
+        document.getElementById('chatMessageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
 
         function openKickModal(userid) {
             currentUserId = userid;
@@ -642,6 +727,11 @@
         function closeModal() {
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
             currentUserId = null;
+            currentUsername = null;
+            if (chatUpdateInterval) {
+                clearInterval(chatUpdateInterval);
+                chatUpdateInterval = null;
+            }
         }
 
         function confirmKick() {
@@ -672,8 +762,9 @@
 
         function confirmMessage() {
             const text = document.getElementById('messageText').value;
+            const adminName = prompt('Enter your admin name:', 'ANONYMOUS ADMIN') || 'SYSTEM';
             if (text) {
-                sendCommand(currentUserId, 'msg', { text });
+                sendCommand(currentUserId, 'msg', { text, adminName });
             }
             closeModal();
         }
@@ -747,7 +838,7 @@
                                 <button class="btn btn-purple" onclick="sendCommand('${userid}', 'noclip')">👻 Noclip</button>
                                 <button class="btn btn-warning" onclick="sendCommand('${userid}', 'clipon')">🧱 Clip On</button>
                                 <button class="btn btn-info" onclick="openMessageModal('${userid}')">💬 Message</button>
-                                <button class="btn btn-pink" onclick="openImageModal('${userid}')">🖼️ Image</button>
+                                <button class="btn btn-pink" onclick="openChatModal('${userid}', '${username}')">💀 Chat</button>
                             </div>
                         </div>
                         `;

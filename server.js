@@ -1,21 +1,31 @@
-const express = require('express');
+// API pour obtenir l'historique du chat
+app.get('/chat/:userid', (req, res) => {
+    try {
+        const { userid } = req.params;
+        const history = chatHistory.get(userid.toString()) || [];
+        res.json(history);
+    } catch (error) {
+        console.error('❌ Error in /chat:', error);
+        res.status(500).json([]);
+    }
+});const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// IMPORTANT: Augmenter la limite de taille pour les requêtes JSON
+// Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
-// Base de données en mémoire (optimisée)
+// Base de données en mémoire
 const players = new Map();
 const commands = new Map();
 
-// API pour enregistrement et heartbeat (avec gestion d'erreur)
+// API pour enregistrement et heartbeat
 app.post('/api', (req, res) => {
     try {
         const { action, userid, username, executor, ip, game, gameId, jobId } = req.body;
@@ -57,7 +67,7 @@ app.post('/api', (req, res) => {
     }
 });
 
-// API pour récupérer les commandes (avec gestion d'erreur)
+// API pour récupérer les commandes
 app.get('/api', (req, res) => {
     try {
         const { userid } = req.query;
@@ -84,24 +94,48 @@ app.get('/api', (req, res) => {
 // API pour envoyer des commandes depuis le panel
 app.post('/command', (req, res) => {
     try {
-        const { userid, command, reason, assetId, speed, text, imageUrl, size } = req.body;
+        const { userid, command, reason, assetId, speed, text, imageUrl, size, adminName, chatMessage, chatSender } = req.body;
 
-        if (!userid || !command) {
+        if (!userid || (!command && !chatMessage)) {
             return res.status(400).json({ error: 'Missing userid or command' });
         }
 
-        const commandData = { command };
-        if (reason !== undefined) commandData.reason = reason;
-        if (assetId !== undefined) commandData.assetId = assetId;
-        if (speed !== undefined) commandData.speed = speed;
-        if (text !== undefined) commandData.text = text;
-        if (imageUrl !== undefined) commandData.imageUrl = imageUrl;
-        if (size !== undefined) commandData.size = size;
+        const commandData = {};
+        
+        if (chatMessage) {
+            // Message chat
+            commandData.chatMessage = chatMessage;
+            commandData.chatSender = chatSender || 'ADMIN';
+            
+            // Ajouter à l'historique
+            if (!chatHistory.has(userid.toString())) {
+                chatHistory.set(userid.toString(), []);
+            }
+            chatHistory.get(userid.toString()).push({
+                sender: chatSender || 'ADMIN',
+                message: chatMessage,
+                timestamp: Date.now(),
+                isAdmin: true
+            });
+        } else {
+            // Commande normale
+            commandData.command = command;
+            if (reason !== undefined) commandData.reason = reason;
+            if (assetId !== undefined) commandData.assetId = assetId;
+            if (speed !== undefined) commandData.speed = speed;
+            if (text !== undefined) commandData.text = text;
+            if (imageUrl !== undefined) commandData.imageUrl = imageUrl;
+            if (size !== undefined) commandData.size = size;
+            if (adminName !== undefined) commandData.adminName = adminName;
+        }
 
         commands.set(userid.toString(), commandData);
-        console.log(`📤 Command queued for ${userid}:`, command);
+        console.log(`📤 Command/Chat queued for ${userid}:`, commandData);
 
-        res.json({ success: true, message: `Command "${command}" queued for player ${userid}` });
+        res.json({ 
+            success: true, 
+            message: chatMessage ? 'Chat message sent' : `Command "${command}" queued for player ${userid}` 
+        });
     } catch (error) {
         console.error('❌ Error in /command:', error);
         res.status(500).json({ success: false, error: error.message });
@@ -151,6 +185,7 @@ app.get('/health', (req, res) => {
 setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
+    
     for (const [userid, player] of players.entries()) {
         if (now - player.lastSeen > 60000) {
             console.log(`🔴 Player timeout: ${player.username}`);
@@ -159,6 +194,7 @@ setInterval(() => {
             cleaned++;
         }
     }
+    
     if (cleaned > 0) {
         console.log(`🧹 Cleaned ${cleaned} inactive player(s)`);
     }
@@ -174,6 +210,7 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`🚀 1337 Panel Server running on port ${PORT}`);
     console.log(`📡 Local: http://localhost:${PORT}`);
