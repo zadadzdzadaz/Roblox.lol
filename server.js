@@ -1,14 +1,4 @@
-// API pour obtenir l'historique du chat
-app.get('/chat/:userid', (req, res) => {
-    try {
-        const { userid } = req.params;
-        const history = chatHistory.get(userid.toString()) || [];
-        res.json(history);
-    } catch (error) {
-        console.error('❌ Error in /chat:', error);
-        res.status(500).json([]);
-    }
-});const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
@@ -24,6 +14,19 @@ app.use(express.static('public'));
 // Base de données en mémoire
 const players = new Map();
 const commands = new Map();
+const chatHistory = new Map(); // MOVED HERE - before any routes use it
+
+// API pour obtenir l'historique du chat
+app.get('/chat/:userid', (req, res) => {
+    try {
+        const { userid } = req.params;
+        const history = chatHistory.get(userid.toString()) || [];
+        res.json(history);
+    } catch (error) {
+        console.error('❌ Error in /chat:', error);
+        res.status(500).json([]);
+    }
+});
 
 // API pour enregistrement et heartbeat
 app.post('/api', (req, res) => {
@@ -163,6 +166,7 @@ app.delete('/player/:userid', (req, res) => {
         const { userid } = req.params;
         players.delete(userid);
         commands.delete(userid);
+        chatHistory.delete(userid);
         console.log(`🗑️ Player deleted: ${userid}`);
         res.json({ success: true });
     } catch (error) {
@@ -191,6 +195,7 @@ setInterval(() => {
             console.log(`🔴 Player timeout: ${player.username}`);
             players.delete(userid);
             commands.delete(userid);
+            chatHistory.delete(userid);
             cleaned++;
         }
     }
