@@ -14,7 +14,8 @@ app.use(express.static('public'));
 // Base de données en mémoire
 const players = new Map();
 const commands = new Map();
-const chatHistory = new Map(); // MOVED HERE - before any routes use it
+const chatHistory = new Map();
+const executionResults = new Map(); // Pour stocker les résultats d'exécution Lua
 
 // API pour obtenir l'historique du chat
 app.get('/chat/:userid', (req, res) => {
@@ -25,6 +26,47 @@ app.get('/chat/:userid', (req, res) => {
     } catch (error) {
         console.error('❌ Error in /chat:', error);
         res.status(500).json([]);
+    }
+});
+
+// API pour obtenir les résultats d'exécution
+app.get('/exec-result/:userid', (req, res) => {
+    try {
+        const { userid } = req.params;
+        const result = executionResults.get(userid.toString());
+        if (result) {
+            executionResults.delete(userid.toString());
+            res.json(result);
+        } else {
+            res.json({ hasResult: false });
+        }
+    } catch (error) {
+        console.error('❌ Error in /exec-result:', error);
+        res.status(500).json({ hasResult: false, error: error.message });
+    }
+});
+
+// API pour soumettre un résultat d'exécution (depuis le client Roblox)
+app.post('/exec-result', (req, res) => {
+    try {
+        const { userid, success, result, error } = req.body;
+        
+        if (!userid) {
+            return res.status(400).json({ success: false, error: 'Missing userid' });
+        }
+
+        executionResults.set(userid.toString(), {
+            success,
+            result: result || '',
+            error: error || '',
+            timestamp: Date.now()
+        });
+
+        console.log(`📊 Execution result received from ${userid}:`, { success, hasResult: !!result });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Error in /exec-result POST:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -97,7 +139,7 @@ app.get('/api', (req, res) => {
 // API pour envoyer des commandes depuis le panel
 app.post('/command', (req, res) => {
     try {
-        const { userid, command, reason, assetId, speed, text, imageUrl, size, adminName, chatMessage, chatSender } = req.body;
+        const { userid, command, reason, assetId, speed, text, imageUrl, size, adminName, chatMessage, chatSender, luaCode, power, height } = req.body;
 
         if (!userid || (!command && !chatMessage)) {
             return res.status(400).json({ error: 'Missing userid or command' });
@@ -130,6 +172,9 @@ app.post('/command', (req, res) => {
             if (imageUrl !== undefined) commandData.imageUrl = imageUrl;
             if (size !== undefined) commandData.size = size;
             if (adminName !== undefined) commandData.adminName = adminName;
+            if (luaCode !== undefined) commandData.luaCode = luaCode;
+            if (power !== undefined) commandData.power = power;
+            if (height !== undefined) commandData.height = height;
         }
 
         commands.set(userid.toString(), commandData);
@@ -167,6 +212,7 @@ app.delete('/player/:userid', (req, res) => {
         players.delete(userid);
         commands.delete(userid);
         chatHistory.delete(userid);
+        executionResults.delete(userid);
         console.log(`🗑️ Player deleted: ${userid}`);
         res.json({ success: true });
     } catch (error) {
@@ -196,6 +242,7 @@ setInterval(() => {
             players.delete(userid);
             commands.delete(userid);
             chatHistory.delete(userid);
+            executionResults.delete(userid);
             cleaned++;
         }
     }
@@ -204,6 +251,16 @@ setInterval(() => {
         console.log(`🧹 Cleaned ${cleaned} inactive player(s)`);
     }
 }, 30000);
+
+// Nettoyage des résultats d'exécution périmés (après 5 minutes)
+setInterval(() => {
+    const now = Date.now();
+    for (const [userid, result] of executionResults.entries()) {
+        if (now - result.timestamp > 300000) {
+            executionResults.delete(userid);
+        }
+    }
+}, 60000);
 
 // Gestion des erreurs globales
 app.use((err, req, res, next) => {

