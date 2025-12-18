@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Roblox Control Panel</title>
+    <title>🎮 Roblox Control Panel Pro</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -60,7 +60,7 @@
 
         .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 20px;
         }
 
@@ -88,13 +88,13 @@
 
         .player-info h2 {
             color: #333;
-            font-size: 1.4em;
+            font-size: 1.3em;
             margin-bottom: 5px;
         }
 
         .player-id {
             color: #888;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
 
         .status {
@@ -114,39 +114,21 @@
             color: white;
         }
 
-        .player-details {
-            margin-bottom: 15px;
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #333;
-        }
-
         .controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 6px;
             margin-top: 15px;
         }
 
         .btn {
-            padding: 10px;
+            padding: 8px;
             border: none;
             border-radius: 8px;
-            font-size: 0.85em;
+            font-size: 0.75em;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             text-transform: uppercase;
         }
 
@@ -165,6 +147,8 @@
         .btn-info { background: #3b82f6; color: white; }
         .btn-purple { background: #8b5cf6; color: white; }
         .btn-pink { background: #ec4899; color: white; }
+        .btn-cyan { background: #06b6d4; color: white; }
+        .btn-teal { background: #14b8a6; color: white; }
 
         .btn-full {
             grid-column: 1 / -1;
@@ -191,8 +175,10 @@
             background: white;
             padding: 30px;
             border-radius: 15px;
-            max-width: 400px;
+            max-width: 500px;
             width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .modal-content h3 {
@@ -200,13 +186,14 @@
             color: #333;
         }
 
-        .modal-content input {
+        .modal-content input, .modal-content textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 1em;
             margin-bottom: 15px;
+            font-family: inherit;
         }
 
         .modal-buttons {
@@ -217,6 +204,48 @@
         .modal-buttons button {
             flex: 1;
             padding: 12px;
+        }
+
+        .chat-container {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .chat-message.admin {
+            background: #dbeafe;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .chat-sender {
+            font-weight: bold;
+            color: #3b82f6;
+            font-size: 0.85em;
+            margin-bottom: 3px;
+        }
+
+        .chat-text {
+            color: #333;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
         }
 
         .empty-state {
@@ -232,18 +261,13 @@
             font-size: 2em;
             margin-bottom: 15px;
         }
-
-        .empty-state p {
-            color: #666;
-            font-size: 1.1em;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎮 Roblox Control Panel</h1>
-            <p style="color: #666; margin-top: 10px;">Contrôlez vos joueurs en temps réel</p>
+            <h1>🎮 Roblox Control Panel Pro</h1>
+            <p style="color: #666; margin-top: 10px;">Contrôle total avec chat & images</p>
             <div class="stats">
                 <div class="stat-card">
                     <h3 id="onlineCount">0</h3>
@@ -259,6 +283,7 @@
         <div id="playersContainer" class="players-grid"></div>
     </div>
 
+    <!-- Modal Kick -->
     <div id="kickModal" class="modal">
         <div class="modal-content">
             <h3>🚪 Kick Player</h3>
@@ -270,6 +295,7 @@
         </div>
     </div>
 
+    <!-- Modal Sound -->
     <div id="soundModal" class="modal">
         <div class="modal-content">
             <h3>🔊 Play Sound</h3>
@@ -281,21 +307,102 @@
         </div>
     </div>
 
+    <!-- Modal Speed -->
+    <div id="speedModal" class="modal">
+        <div class="modal-content">
+            <h3>⚡ Changer la vitesse</h3>
+            <input type="number" id="speedValue" placeholder="Vitesse (16 = normal)" value="50" />
+            <div class="modal-buttons">
+                <button class="btn btn-success" onclick="confirmSpeed()">Appliquer</button>
+                <button class="btn btn-info" onclick="closeModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Spin -->
+    <div id="spinModal" class="modal">
+        <div class="modal-content">
+            <h3>🌀 Vitesse de rotation</h3>
+            <input type="number" id="spinSpeed" placeholder="Vitesse (20 = normal)" value="20" />
+            <div class="modal-buttons">
+                <button class="btn btn-purple" onclick="confirmSpin()">Spin</button>
+                <button class="btn btn-info" onclick="closeModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Message -->
+    <div id="msgModal" class="modal">
+        <div class="modal-content">
+            <h3>💬 Envoyer un message</h3>
+            <textarea id="msgText" placeholder="Votre message..." rows="4"></textarea>
+            <div class="modal-buttons">
+                <button class="btn btn-info" onclick="confirmMsg()">Envoyer</button>
+                <button class="btn btn-warning" onclick="closeModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Image -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <h3>🖼️ Afficher une image</h3>
+            <input type="text" id="imageUrl" placeholder="URL de l'image..." />
+            <input type="number" id="imageSize" placeholder="Taille (pixels)" value="200" />
+            <div class="modal-buttons">
+                <button class="btn btn-pink" onclick="confirmImage()">Afficher</button>
+                <button class="btn btn-info" onclick="closeModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chat -->
+    <div id="chatModal" class="modal">
+        <div class="modal-content">
+            <h3>💬 Chat avec <span id="chatUsername"></span></h3>
+            <div class="chat-container" id="chatMessages"></div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Votre message..." />
+                <button class="btn btn-success" onclick="sendChatMessage()">📤</button>
+            </div>
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button class="btn btn-info" onclick="closeModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentUserId = null;
+        let currentUsername = null;
+        let chatInterval = null;
+
+        // Helper pour fetch avec gestion d'erreur
+        async function safeFetch(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const text = await response.text();
+                if (!text || text.trim() === '') {
+                    return null;
+                }
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return null;
+                }
+            } catch (error) {
+                return null;
+            }
+        }
 
         async function sendCommand(userid, command, data = {}) {
-            try {
-                const response = await fetch('/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userid, command, ...data })
-                });
-                const result = await response.json();
-                console.log('✅ Command sent:', result);
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
+            await safeFetch('/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userid, command, ...data })
+            });
         }
 
         function openKickModal(userid) {
@@ -308,10 +415,43 @@
             document.getElementById('soundModal').classList.add('active');
         }
 
+        function openSpeedModal(userid) {
+            currentUserId = userid;
+            document.getElementById('speedModal').classList.add('active');
+        }
+
+        function openSpinModal(userid) {
+            currentUserId = userid;
+            document.getElementById('spinModal').classList.add('active');
+        }
+
+        function openMsgModal(userid) {
+            currentUserId = userid;
+            document.getElementById('msgModal').classList.add('active');
+        }
+
+        function openImageModal(userid) {
+            currentUserId = userid;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function openChatModal(userid, username) {
+            currentUserId = userid;
+            currentUsername = username;
+            document.getElementById('chatUsername').textContent = username;
+            document.getElementById('chatModal').classList.add('active');
+            loadChatMessages();
+            chatInterval = setInterval(loadChatMessages, 2000);
+        }
+
         function closeModal() {
-            document.getElementById('kickModal').classList.remove('active');
-            document.getElementById('soundModal').classList.remove('active');
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            if (chatInterval) {
+                clearInterval(chatInterval);
+                chatInterval = null;
+            }
             currentUserId = null;
+            currentUsername = null;
         }
 
         function confirmKick() {
@@ -328,76 +468,148 @@
             closeModal();
         }
 
-        async function loadPlayers() {
-            try {
-                const response = await fetch('/players');
-                const players = await response.json();
+        function confirmSpeed() {
+            const speed = document.getElementById('speedValue').value;
+            sendCommand(currentUserId, 'speed', { speed: parseInt(speed) });
+            closeModal();
+        }
 
-                const container = document.getElementById('playersContainer');
-                
-                if (players.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state" style="grid-column: 1/-1;">
-                            <h2>😴 Aucun joueur connecté</h2>
-                            <p>Les joueurs apparaîtront ici dès qu'ils exécuteront le script</p>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = players.map(player => `
-                        <div class="player-card">
-                            <div class="player-header">
-                                <div class="player-info">
-                                    <h2>${player.username}</h2>
-                                    <div class="player-id">ID: ${player.userid}</div>
-                                </div>
-                                <span class="status ${player.status}">${player.status.toUpperCase()}</span>
-                            </div>
-                            
-                            <div class="player-details">
-                                <div class="detail-row">
-                                    <span class="detail-label">🎮 Jeu:</span>
-                                    <span>${player.game || 'N/A'}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">⚡ Executor:</span>
-                                    <span>${player.executor || 'Unknown'}</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">🌐 IP:</span>
-                                    <span>${player.ip || 'Unknown'}</span>
-                                </div>
-                            </div>
+        function confirmSpin() {
+            const speed = document.getElementById('spinSpeed').value;
+            sendCommand(currentUserId, 'spin', { speed: parseInt(speed) });
+            closeModal();
+        }
 
-                            <div class="controls">
-                                <button class="btn btn-danger" onclick="openKickModal('${player.userid}')">🚪 Kick</button>
-                                <button class="btn btn-warning" onclick="sendCommand('${player.userid}', 'freeze')">❄️ Freeze</button>
-                                <button class="btn btn-success" onclick="sendCommand('${player.userid}', 'unfreeze')">🔥 Unfreeze</button>
-                                
-                                <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'jump')">⬆️ Jump</button>
-                                <button class="btn btn-purple" onclick="sendCommand('${player.userid}', 'spin')">🌀 Spin</button>
-                                <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'unspin')">⏸️ Unspin</button>
-                                
-                                <button class="btn btn-pink" onclick="sendCommand('${player.userid}', 'rainbow')">🌈 Rainbow</button>
-                                <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'unrainbow')">⚪ Unrainbow</button>
-                                <button class="btn btn-purple" onclick="sendCommand('${player.userid}', 'invisible')">👻 Invisible</button>
-                                
-                                <button class="btn btn-success" onclick="sendCommand('${player.userid}', 'uninvisible')">👁️ Visible</button>
-                                <button class="btn btn-danger" onclick="sendCommand('${player.userid}', 'explode')">💥 Explode</button>
-                                <button class="btn btn-success" onclick="openSoundModal('${player.userid}')">🔊 Sound</button>
-                                
-                                <button class="btn btn-warning btn-full" onclick="sendCommand('${player.userid}', 'stopsound')">🔇 Stop Sound</button>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
-                const onlineCount = players.filter(p => p.status === 'online').length;
-                document.getElementById('onlineCount').textContent = onlineCount;
-                document.getElementById('totalCount').textContent = players.length;
-
-            } catch (error) {
-                console.error('❌ Error:', error);
+        function confirmMsg() {
+            const text = document.getElementById('msgText').value;
+            if (text) {
+                sendCommand(currentUserId, 'msg', { text });
             }
+            closeModal();
+        }
+
+        function confirmImage() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            const size = document.getElementById('imageSize').value;
+            if (imageUrl) {
+                sendCommand(currentUserId, 'image', { imageUrl, size: parseInt(size) });
+            }
+            closeModal();
+        }
+
+        async function loadChatMessages() {
+            const messages = await safeFetch(`/chat/${currentUserId}`);
+            
+            const container = document.getElementById('chatMessages');
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Aucun message</div>';
+            } else {
+                container.innerHTML = messages.map(msg => `
+                    <div class="chat-message ${msg.sender === 'Admin' ? 'admin' : ''}">
+                        <div class="chat-sender">${msg.sender}</div>
+                        <div class="chat-text">${msg.message}</div>
+                    </div>
+                `).join('');
+            }
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            await safeFetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userid: currentUserId,
+                    message: message,
+                    sender: 'Admin'
+                })
+            });
+            
+            input.value = '';
+            loadChatMessages();
+        }
+
+        // Enter pour envoyer
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendChatMessage();
+                    }
+                });
+            }
+        });
+
+        async function loadPlayers() {
+            const players = await safeFetch('/players');
+            
+            if (!players) return;
+
+            const container = document.getElementById('playersContainer');
+            
+            if (players.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <h2>😴 Aucun joueur connecté</h2>
+                        <p>Les joueurs apparaîtront ici dès qu'ils exécuteront le script</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = players.map(player => `
+                    <div class="player-card">
+                        <div class="player-header">
+                            <div class="player-info">
+                                <h2>${player.username}</h2>
+                                <div class="player-id">ID: ${player.userid}</div>
+                            </div>
+                            <span class="status ${player.status}">${player.status.toUpperCase()}</span>
+                        </div>
+
+                        <div class="controls">
+                            <button class="btn btn-danger" onclick="openKickModal('${player.userid}')">🚪 Kick</button>
+                            <button class="btn btn-warning" onclick="sendCommand('${player.userid}', 'freeze')">❄️ Freeze</button>
+                            <button class="btn btn-success" onclick="sendCommand('${player.userid}', 'unfreeze')">🔥 Unfreeze</button>
+                            
+                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'jump')">⬆️ Jump</button>
+                            <button class="btn btn-purple" onclick="openSpinModal('${player.userid}')">🌀 Spin</button>
+                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'unspin')">⏸️ Unspin</button>
+                            
+                            <button class="btn btn-pink" onclick="sendCommand('${player.userid}', 'rainbow')">🌈 Rainbow</button>
+                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'unrainbow')">⚪ Normal</button>
+                            <button class="btn btn-purple" onclick="sendCommand('${player.userid}', 'invisible')">👻 Invis</button>
+                            
+                            <button class="btn btn-success" onclick="sendCommand('${player.userid}', 'uninvisible')">👁️ Visible</button>
+                            <button class="btn btn-danger" onclick="sendCommand('${player.userid}', 'explode')">💥 Explode</button>
+                            <button class="btn btn-success" onclick="openSoundModal('${player.userid}')">🔊 Sound</button>
+                            
+                            <button class="btn btn-warning" onclick="sendCommand('${player.userid}', 'stopsound')">🔇 Stop</button>
+                            <button class="btn btn-cyan" onclick="openSpeedModal('${player.userid}')">⚡ Speed</button>
+                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'resetspeed')">↩️ Reset</button>
+                            
+                            <button class="btn btn-teal" onclick="sendCommand('${player.userid}', 'god')">🛡️ God</button>
+                            <button class="btn btn-warning" onclick="sendCommand('${player.userid}', 'ungod')">⚔️ Ungod</button>
+                            <button class="btn btn-purple" onclick="sendCommand('${player.userid}', 'fling')">🚀 Fling</button>
+                            
+                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'noclip')">👻 Noclip</button>
+                            <button class="btn btn-cyan" onclick="openMsgModal('${player.userid}')">💬 Message</button>
+                            <button class="btn btn-pink" onclick="openImageModal('${player.userid}')">🖼️ Image</button>
+                            
+                            <button class="btn btn-success btn-full" onclick="openChatModal('${player.userid}', '${player.username}')">💬 Chat Direct</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const onlineCount = players.filter(p => p.status === 'online').length;
+            document.getElementById('onlineCount').textContent = onlineCount;
+            document.getElementById('totalCount').textContent = players.length;
         }
 
         loadPlayers();
