@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎮 Roblox Control Panel Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,146 +13,261 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 92, 246, 0.3), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
             max-width: 1600px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
 
         header {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             margin-bottom: 30px;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         h1 {
-            color: #667eea;
-            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3em;
             margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+            font-weight: 400;
         }
 
         .stats {
             display: flex;
             gap: 20px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 25px;
+            flex-wrap: wrap;
         }
 
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
+            padding: 20px 40px;
+            border-radius: 15px;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s;
+            min-width: 140px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card h3 {
-            font-size: 2em;
+            font-size: 2.5em;
             margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .stat-card p {
+            font-size: 0.9em;
+            opacity: 0.9;
+            font-weight: 500;
         }
 
         .players-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
         }
 
         .player-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            transition: transform 0.3s, box-shadow 0.3s;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
         }
 
         .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
         }
 
         .player-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
             border-bottom: 2px solid #f0f0f0;
         }
 
         .player-info h2 {
             color: #333;
-            font-size: 1.3em;
-            margin-bottom: 5px;
+            font-size: 1.4em;
+            margin-bottom: 8px;
+            font-weight: 600;
         }
 
         .player-id {
             color: #888;
             font-size: 0.85em;
+            font-weight: 400;
+        }
+
+        .player-executor {
+            color: #667eea;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-top: 4px;
         }
 
         .status {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: bold;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .status.online {
-            background: #10b981;
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
+            animation: pulse 2s infinite;
         }
 
         .status.offline {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
 
         .controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 20px;
         }
 
         .btn {
-            padding: 8px;
+            padding: 10px;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.75em;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-family: 'Poppins', sans-serif;
         }
 
         .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
 
         .btn:active {
-            transform: scale(0.95);
+            transform: translateY(0);
         }
 
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-info { background: #3b82f6; color: white; }
-        .btn-purple { background: #8b5cf6; color: white; }
-        .btn-pink { background: #ec4899; color: white; }
-        .btn-cyan { background: #06b6d4; color: white; }
-        .btn-teal { background: #14b8a6; color: white; }
+        .btn-danger { 
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white; 
+        }
+        
+        .btn-warning { 
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white; 
+        }
+        
+        .btn-success { 
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; 
+        }
+        
+        .btn-info { 
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white; 
+        }
+        
+        .btn-purple { 
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white; 
+        }
+        
+        .btn-pink { 
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            color: white; 
+        }
+        
+        .btn-cyan { 
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white; 
+        }
+        
+        .btn-teal { 
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: white; 
+        }
 
         .btn-full {
             grid-column: 1 / -1;
+            padding: 12px;
+            font-size: 0.85em;
         }
 
         .modal {
@@ -161,10 +277,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal.active {
@@ -173,70 +296,122 @@
 
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 35px;
+            border-radius: 20px;
             max-width: 500px;
             width: 90%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-content h3 {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             color: #333;
+            font-size: 1.5em;
+            font-weight: 600;
         }
 
         .modal-content input, .modal-content textarea {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: 2px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1em;
             margin-bottom: 15px;
-            font-family: inherit;
+            font-family: 'Poppins', sans-serif;
+            transition: border 0.3s;
+        }
+
+        .modal-content input:focus, .modal-content textarea:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .modal-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            margin-top: 20px;
         }
 
         .modal-buttons button {
             flex: 1;
-            padding: 12px;
+            padding: 14px;
         }
 
         .chat-container {
             background: #f9fafb;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 15px;
-            max-height: 300px;
+            max-height: 350px;
             overflow-y: auto;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
         }
 
         .chat-message {
             background: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            animation: messageSlide 0.3s;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .chat-message.admin {
-            background: #dbeafe;
-            border-left: 3px solid #3b82f6;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-left: 4px solid #3b82f6;
         }
 
         .chat-sender {
-            font-weight: bold;
+            font-weight: 600;
             color: #3b82f6;
             font-size: 0.85em;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
         }
 
         .chat-text {
             color: #333;
+            word-wrap: break-word;
+            line-height: 1.5;
         }
 
         .chat-input-container {
@@ -250,16 +425,83 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 80px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .empty-state h2 {
-            color: #667eea;
-            font-size: 2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.2em;
             margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+            font-weight: 500;
+            border-left: 4px solid #dc2626;
+        }
+
+        .connection-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        .connection-text {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -267,7 +509,7 @@
     <div class="container">
         <header>
             <h1>🎮 Roblox Control Panel Pro</h1>
-            <p style="color: #666; margin-top: 10px;">Contrôle total avec chat & images</p>
+            <p class="subtitle">Contrôle total avec chat & images en temps réel</p>
             <div class="stats">
                 <div class="stat-card">
                     <h3 id="onlineCount">0</h3>
@@ -280,7 +522,13 @@
             </div>
         </header>
 
+        <div id="errorContainer" class="error-message"></div>
         <div id="playersContainer" class="players-grid"></div>
+    </div>
+
+    <div class="connection-indicator">
+        <div class="connection-dot"></div>
+        <span class="connection-text">Panel actif</span>
     </div>
 
     <!-- Modal Kick -->
@@ -299,7 +547,7 @@
     <div id="soundModal" class="modal">
         <div class="modal-content">
             <h3>🔊 Play Sound</h3>
-            <input type="text" id="soundAssetId" placeholder="Asset ID du son..." />
+            <input type="text" id="soundAssetId" placeholder="Asset ID du son (ex: 1234567890)..." />
             <div class="modal-buttons">
                 <button class="btn btn-success" onclick="confirmSound()">Play</button>
                 <button class="btn btn-info" onclick="closeModal()">Annuler</button>
@@ -311,7 +559,7 @@
     <div id="speedModal" class="modal">
         <div class="modal-content">
             <h3>⚡ Changer la vitesse</h3>
-            <input type="number" id="speedValue" placeholder="Vitesse (16 = normal)" value="50" />
+            <input type="number" id="speedValue" placeholder="Vitesse (16 = normal, 50 = rapide)" value="50" />
             <div class="modal-buttons">
                 <button class="btn btn-success" onclick="confirmSpeed()">Appliquer</button>
                 <button class="btn btn-info" onclick="closeModal()">Annuler</button>
@@ -323,7 +571,7 @@
     <div id="spinModal" class="modal">
         <div class="modal-content">
             <h3>🌀 Vitesse de rotation</h3>
-            <input type="number" id="spinSpeed" placeholder="Vitesse (20 = normal)" value="20" />
+            <input type="number" id="spinSpeed" placeholder="Vitesse (20 = normal, 50 = rapide)" value="20" />
             <div class="modal-buttons">
                 <button class="btn btn-purple" onclick="confirmSpin()">Spin</button>
                 <button class="btn btn-info" onclick="closeModal()">Annuler</button>
@@ -347,8 +595,8 @@
     <div id="imageModal" class="modal">
         <div class="modal-content">
             <h3>🖼️ Afficher une image</h3>
-            <input type="text" id="imageUrl" placeholder="URL de l'image..." />
-            <input type="number" id="imageSize" placeholder="Taille (pixels)" value="200" />
+            <input type="text" id="imageUrl" placeholder="URL de l'image (https://...)..." />
+            <input type="number" id="imageSize" placeholder="Taille en pixels (100-500)" value="200" />
             <div class="modal-buttons">
                 <button class="btn btn-pink" onclick="confirmImage()">Afficher</button>
                 <button class="btn btn-info" onclick="closeModal()">Annuler</button>
@@ -376,7 +624,15 @@
         let currentUsername = null;
         let chatInterval = null;
 
-        // Helper pour fetch avec gestion d'erreur
+        function showError(message) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.textContent = '⚠️ ' + message;
+            errorContainer.style.display = 'block';
+            setTimeout(() => {
+                errorContainer.style.display = 'none';
+            }, 5000);
+        }
+
         async function safeFetch(url, options = {}) {
             try {
                 const response = await fetch(url, options);
@@ -390,49 +646,61 @@
                 try {
                     return JSON.parse(text);
                 } catch (e) {
+                    console.error('JSON Parse error:', e);
                     return null;
                 }
             } catch (error) {
+                console.error('Fetch error:', error);
                 return null;
             }
         }
 
         async function sendCommand(userid, command, data = {}) {
-            await safeFetch('/command', {
+            const result = await safeFetch('/command', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userid, command, ...data })
             });
+            
+            if (!result || !result.success) {
+                showError('Erreur lors de l\'envoi de la commande');
+            }
         }
 
         function openKickModal(userid) {
             currentUserId = userid;
             document.getElementById('kickModal').classList.add('active');
+            document.getElementById('kickReason').focus();
         }
 
         function openSoundModal(userid) {
             currentUserId = userid;
             document.getElementById('soundModal').classList.add('active');
+            document.getElementById('soundAssetId').focus();
         }
 
         function openSpeedModal(userid) {
             currentUserId = userid;
             document.getElementById('speedModal').classList.add('active');
+            document.getElementById('speedValue').focus();
         }
 
         function openSpinModal(userid) {
             currentUserId = userid;
             document.getElementById('spinModal').classList.add('active');
+            document.getElementById('spinSpeed').focus();
         }
 
         function openMsgModal(userid) {
             currentUserId = userid;
             document.getElementById('msgModal').classList.add('active');
+            document.getElementById('msgText').focus();
         }
 
         function openImageModal(userid) {
             currentUserId = userid;
             document.getElementById('imageModal').classList.add('active');
+            document.getElementById('imageUrl').focus();
         }
 
         function openChatModal(userid, username) {
@@ -442,6 +710,7 @@
             document.getElementById('chatModal').classList.add('active');
             loadChatMessages();
             chatInterval = setInterval(loadChatMessages, 2000);
+            document.getElementById('chatInput').focus();
         }
 
         function closeModal() {
@@ -461,39 +730,57 @@
         }
 
         function confirmSound() {
-            const assetId = document.getElementById('soundAssetId').value;
-            if (assetId) {
-                sendCommand(currentUserId, 'playsound', { assetId });
+            const assetId = document.getElementById('soundAssetId').value.trim();
+            if (!assetId) {
+                showError('Veuillez entrer un Asset ID');
+                return;
             }
+            sendCommand(currentUserId, 'playsound', { assetId });
             closeModal();
         }
 
         function confirmSpeed() {
-            const speed = document.getElementById('speedValue').value;
-            sendCommand(currentUserId, 'speed', { speed: parseInt(speed) });
+            const speed = parseInt(document.getElementById('speedValue').value);
+            if (isNaN(speed) || speed < 0) {
+                showError('Veuillez entrer une vitesse valide');
+                return;
+            }
+            sendCommand(currentUserId, 'speed', { speed });
             closeModal();
         }
 
         function confirmSpin() {
-            const speed = document.getElementById('spinSpeed').value;
-            sendCommand(currentUserId, 'spin', { speed: parseInt(speed) });
+            const speed = parseInt(document.getElementById('spinSpeed').value);
+            if (isNaN(speed) || speed < 0) {
+                showError('Veuillez entrer une vitesse valide');
+                return;
+            }
+            sendCommand(currentUserId, 'spin', { speed });
             closeModal();
         }
 
         function confirmMsg() {
-            const text = document.getElementById('msgText').value;
-            if (text) {
-                sendCommand(currentUserId, 'msg', { text });
+            const text = document.getElementById('msgText').value.trim();
+            if (!text) {
+                showError('Veuillez entrer un message');
+                return;
             }
+            sendCommand(currentUserId, 'msg', { text });
             closeModal();
         }
 
         function confirmImage() {
-            const imageUrl = document.getElementById('imageUrl').value;
-            const size = document.getElementById('imageSize').value;
-            if (imageUrl) {
-                sendCommand(currentUserId, 'image', { imageUrl, size: parseInt(size) });
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            const size = parseInt(document.getElementById('imageSize').value);
+            if (!imageUrl) {
+                showError('Veuillez entrer une URL d\'image');
+                return;
             }
+            if (isNaN(size) || size < 50 || size > 1000) {
+                showError('Taille invalide (50-1000 pixels)');
+                return;
+            }
+            sendCommand(currentUserId, 'image', { imageUrl, size });
             closeModal();
         }
 
@@ -502,17 +789,23 @@
             
             const container = document.getElementById('chatMessages');
             if (!messages || messages.length === 0) {
-                container.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Aucun message</div>';
+                container.innerHTML = '<div style="text-align:center;color:#888;padding:30px;font-style:italic;">Aucun message pour le moment...</div>';
             } else {
                 container.innerHTML = messages.map(msg => `
                     <div class="chat-message ${msg.sender === 'Admin' ? 'admin' : ''}">
-                        <div class="chat-sender">${msg.sender}</div>
-                        <div class="chat-text">${msg.message}</div>
+                        <div class="chat-sender">${escapeHtml(msg.sender)}</div>
+                        <div class="chat-text">${escapeHtml(msg.message)}</div>
                     </div>
                 `).join('');
             }
             
             container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         async function sendChatMessage() {
@@ -521,7 +814,7 @@
             
             if (!message) return;
             
-            await safeFetch('/chat', {
+            const result = await safeFetch('/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -531,11 +824,14 @@
                 })
             });
             
-            input.value = '';
-            loadChatMessages();
+            if (result && result.success) {
+                input.value = '';
+                loadChatMessages();
+            } else {
+                showError('Erreur lors de l\'envoi du message');
+            }
         }
 
-        // Enter pour envoyer
         document.addEventListener('DOMContentLoaded', () => {
             const chatInput = document.getElementById('chatInput');
             if (chatInput) {
@@ -545,12 +841,28 @@
                     }
                 });
             }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal();
+                    }
+                });
+            });
         });
 
         async function loadPlayers() {
             const players = await safeFetch('/players');
             
-            if (!players) return;
+            if (!players) {
+                return;
+            }
 
             const container = document.getElementById('playersContainer');
             
@@ -558,7 +870,7 @@
                 container.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
                         <h2>😴 Aucun joueur connecté</h2>
-                        <p>Les joueurs apparaîtront ici dès qu'ils exécuteront le script</p>
+                        <p>Les joueurs apparaîtront ici automatiquement dès qu'ils exécuteront le script dans Roblox</p>
                     </div>
                 `;
             } else {
@@ -566,10 +878,11 @@
                     <div class="player-card">
                         <div class="player-header">
                             <div class="player-info">
-                                <h2>${player.username}</h2>
+                                <h2>${escapeHtml(player.username)}</h2>
                                 <div class="player-id">ID: ${player.userid}</div>
+                                <div class="player-executor">📱 ${escapeHtml(player.executor || 'Unknown')}</div>
                             </div>
-                            <span class="status ${player.status}">${player.status.toUpperCase()}</span>
+                            <span class="status ${player.status}">${player.status === 'online' ? '🟢 En ligne' : '🔴 Hors ligne'}</span>
                         </div>
 
                         <div class="controls">
@@ -578,42 +891,3 @@
                             <button class="btn btn-success" onclick="sendCommand('${player.userid}', 'unfreeze')">🔥 Unfreeze</button>
                             
                             <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'jump')">⬆️ Jump</button>
-                            <button class="btn btn-purple" onclick="openSpinModal('${player.userid}')">🌀 Spin</button>
-                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'unspin')">⏸️ Unspin</button>
-                            
-                            <button class="btn btn-pink" onclick="sendCommand('${player.userid}', 'rainbow')">🌈 Rainbow</button>
-                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'unrainbow')">⚪ Normal</button>
-                            <button class="btn btn-purple" onclick="sendCommand('${player.userid}', 'invisible')">👻 Invis</button>
-                            
-                            <button class="btn btn-success" onclick="sendCommand('${player.userid}', 'uninvisible')">👁️ Visible</button>
-                            <button class="btn btn-danger" onclick="sendCommand('${player.userid}', 'explode')">💥 Explode</button>
-                            <button class="btn btn-success" onclick="openSoundModal('${player.userid}')">🔊 Sound</button>
-                            
-                            <button class="btn btn-warning" onclick="sendCommand('${player.userid}', 'stopsound')">🔇 Stop</button>
-                            <button class="btn btn-cyan" onclick="openSpeedModal('${player.userid}')">⚡ Speed</button>
-                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'resetspeed')">↩️ Reset</button>
-                            
-                            <button class="btn btn-teal" onclick="sendCommand('${player.userid}', 'god')">🛡️ God</button>
-                            <button class="btn btn-warning" onclick="sendCommand('${player.userid}', 'ungod')">⚔️ Ungod</button>
-                            <button class="btn btn-purple" onclick="sendCommand('${player.userid}', 'fling')">🚀 Fling</button>
-                            
-                            <button class="btn btn-info" onclick="sendCommand('${player.userid}', 'noclip')">👻 Noclip</button>
-                            <button class="btn btn-cyan" onclick="openMsgModal('${player.userid}')">💬 Message</button>
-                            <button class="btn btn-pink" onclick="openImageModal('${player.userid}')">🖼️ Image</button>
-                            
-                            <button class="btn btn-success btn-full" onclick="openChatModal('${player.userid}', '${player.username}')">💬 Chat Direct</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const onlineCount = players.filter(p => p.status === 'online').length;
-            document.getElementById('onlineCount').textContent = onlineCount;
-            document.getElementById('totalCount').textContent = players.length;
-        }
-
-        loadPlayers();
-        setInterval(loadPlayers, 2000);
-    </script>
-</body>
-</html>
