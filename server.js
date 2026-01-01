@@ -152,7 +152,7 @@ app.get('/players', (req, res) => {
         const now = Date.now();
         const playerList = Array.from(players.values()).map(player => ({
             ...player,
-            status: (now - player.lastSeen < 15000) ? 'online' : 'offline'
+            status: (now - player.lastSeen < 20000) ? 'online' : 'offline' // 20 secondes pour être online
         }));
         
         res.json(playerList);
