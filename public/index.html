@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 1337 Panel Pro</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
+    <title>👁️ SHADOW PANEL - Logger Dashboard</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
 
         * {
             margin: 0;
@@ -18,1073 +14,571 @@
         }
 
         :root {
-            --bg-primary: #0a0e27;
-            --bg-secondary: #151932;
-            --bg-card: #1a1f3a;
-            --accent-primary: #00ff88;
-            --accent-secondary: #00d4ff;
-            --accent-danger: #ff0055;
-            --accent-warning: #ffaa00;
-            --text-primary: #ffffff;
-            --text-secondary: #8b92b0;
-            --shadow-glow: 0 0 30px rgba(0, 255, 136, 0.3);
+            --neon-red: #ff0055;
+            --neon-cyan: #00ffff;
+            --neon-purple: #a855f7;
+            --neon-green: #00ff88;
+            --dark-bg: #000000;
+            --darker-bg: #0a0a0a;
+            --card-bg: #111111;
+            --glow-red: 0 0 20px #ff0055, 0 0 40px #ff0055;
+            --glow-cyan: 0 0 20px #00ffff, 0 0 40px #00ffff;
+            --glow-purple: 0 0 20px #a855f7, 0 0 40px #a855f7;
         }
 
         body {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--bg-primary);
-            background-image: 
-                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
             min-height: 100vh;
-            padding: 20px;
-            color: var(--text-primary);
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 0, 85, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Grid Pattern Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 0, 85, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 85, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .container {
-            max-width: 1800px;
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        header {
-            background: var(--bg-secondary);
-            border: 2px solid rgba(0, 255, 136, 0.2);
-            padding: 30px;
+        /* Header Ultra Stylé */
+        .header {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.1), rgba(0, 255, 255, 0.1));
+            border: 2px solid var(--neon-red);
             border-radius: 20px;
+            padding: 40px;
             margin-bottom: 30px;
-            box-shadow: var(--shadow-glow);
             position: relative;
             overflow: hidden;
+            box-shadow: var(--glow-red), inset 0 0 50px rgba(255, 0, 85, 0.1);
         }
 
-        header::before {
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 0, 85, 0.1),
+                transparent
+            );
+            animation: headerScan 4s linear infinite;
+        }
+
+        @keyframes headerScan {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--neon-red), var(--neon-cyan), var(--neon-purple));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s linear infinite;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            text-shadow: 0 0 30px rgba(255, 0, 85, 0.5);
+            margin-bottom: 15px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            margin-bottom: 30px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 2px solid;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .stat-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
-            animation: scan 3s infinite;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
         }
 
-        @keyframes scan {
-            0%, 100% { left: -100%; }
-            50% { left: 100%; }
+        .stat-card:hover::before {
+            left: 100%;
         }
 
-        .header-content {
-            position: relative;
-            z-index: 1;
+        .stat-card.red {
+            border-color: var(--neon-red);
+            box-shadow: var(--glow-red);
         }
 
-        h1 {
-            font-size: 3em;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
+        .stat-card.cyan {
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
         }
 
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 0.9em;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 25px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 136, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
+        .stat-card.purple {
+            border-color: var(--neon-purple);
+            box-shadow: var(--glow-purple);
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-primary);
-            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.3);
+            transform: translateY(-10px) scale(1.05);
         }
 
-        .stat-card h3 {
-            font-size: 2.5em;
-            color: var(--accent-primary);
-            margin-bottom: 5px;
-            font-weight: 700;
+        .stat-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px currentColor);
         }
 
-        .stat-card p {
-            color: var(--text-secondary);
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5em;
+            font-weight: 900;
+            margin-bottom: 10px;
+            animation: numberGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes numberGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .stat-label {
+            font-size: 1.1em;
             text-transform: uppercase;
-            font-size: 0.8em;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            opacity: 0.8;
         }
 
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-            gap: 25px;
-        }
-
-        .player-card {
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 136, 0.15);
+        /* Players Table */
+        .players-section {
+            background: var(--card-bg);
+            border: 2px solid var(--neon-purple);
             border-radius: 20px;
-            padding: 25px;
-            transition: all 0.4s;
+            padding: 30px;
+            box-shadow: var(--glow-purple);
             position: relative;
             overflow: hidden;
         }
 
-        .player-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: var(--accent-primary);
-            box-shadow: 0 15px 50px rgba(0, 255, 136, 0.4);
-        }
-
-        .player-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid rgba(0, 255, 136, 0.1);
-        }
-
-        .player-info h2 {
-            color: var(--accent-primary);
-            font-size: 1.5em;
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
             font-weight: 700;
-            margin-bottom: 5px;
+            color: var(--neon-purple);
             text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+            text-align: center;
+            text-shadow: 0 0 20px var(--neon-purple);
         }
 
-        .player-id {
-            color: var(--text-secondary);
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(168, 85, 247, 0.2));
+        }
+
+        th {
+            padding: 20px;
+            text-align: left;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.9em;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+            border-bottom: 2px solid var(--neon-red);
+        }
+
+        tbody tr {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 0, 85, 0.1);
+            transform: translateX(5px);
+            box-shadow: inset 5px 0 0 var(--neon-red);
+        }
+
+        td {
+            padding: 20px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 15px var(--neon-cyan);
+            transition: all 0.3s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.2) rotate(360deg);
+            box-shadow: 0 0 25px var(--neon-cyan);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
             font-size: 0.85em;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .status {
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-size: 0.8em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
+        .badge.online {
+            background: linear-gradient(135deg, #00ff88, #00ffcc);
+            color: #000;
+            box-shadow: 0 0 15px #00ff88;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+
+        .badge.offline {
+            background: rgba(255, 0, 85, 0.2);
+            color: var(--neon-red);
+            border: 1px solid var(--neon-red);
+        }
+
+        @keyframes badgePulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
 
-        .status.online {
-            background: linear-gradient(135deg, #00ff88, #00ffcc);
-            color: #000;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
-        }
-
-        .status.offline {
-            background: linear-gradient(135deg, #ff0055, #ff3366);
-            color: #fff;
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
-        }
-
-        .player-details {
-            margin-bottom: 20px;
-            font-size: 0.85em;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(0, 255, 136, 0.05);
-            transition: all 0.3s;
-        }
-
-        .detail-row:hover {
-            background: rgba(0, 255, 136, 0.03);
-            padding-left: 10px;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        .detail-value {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 12px;
-            border: 2px solid transparent;
-            border-radius: 10px;
-            font-size: 0.8em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'JetBrains Mono', monospace;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-danger { 
-            background: linear-gradient(135deg, #ff0055, #ff3366);
-            color: white;
-            border-color: #ff0055;
-        }
-        
-        .btn-warning { 
-            background: linear-gradient(135deg, #ffaa00, #ffcc00);
-            color: #000;
-            border-color: #ffaa00;
-        }
-        
-        .btn-success { 
-            background: linear-gradient(135deg, #00ff88, #00ffcc);
-            color: #000;
-            border-color: #00ff88;
-        }
-        
-        .btn-info { 
-            background: linear-gradient(135deg, #00d4ff, #0088ff);
-            color: white;
-            border-color: #00d4ff;
-        }
-        
-        .btn-purple { 
-            background: linear-gradient(135deg, #aa00ff, #cc00ff);
-            color: white;
-            border-color: #aa00ff;
-        }
-        
-        .btn-pink { 
-            background: linear-gradient(135deg, #ff0099, #ff33bb);
-            color: white;
-            border-color: #ff0099;
-        }
-
-        .btn-full {
-            grid-column: 1 / -1;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent-primary);
-            padding: 35px;
-            border-radius: 20px;
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 20px 80px rgba(0, 255, 136, 0.4);
-            animation: modalSlideIn 0.3s;
-        }
-
-        .modal-content.large {
-            max-width: 800px;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-content h3 {
-            margin-bottom: 25px;
-            color: var(--accent-primary);
+        .platform-icon {
             font-size: 1.5em;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            filter: drop-shadow(0 0 5px currentColor);
         }
 
-        .modal-content input, .modal-content textarea {
-            width: 100%;
-            padding: 15px;
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 136, 0.2);
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.5em;
+            color: var(--neon-cyan);
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--darker-bg);
             border-radius: 10px;
-            font-size: 1em;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--neon-red), var(--neon-purple));
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--neon-red);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+        }
+
+        /* Glitch Effect */
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .glitch:hover {
+            animation: glitch 0.3s infinite;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state-icon {
+            font-size: 5em;
             margin-bottom: 20px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            transition: all 0.3s;
+            opacity: 0.3;
         }
 
-        .modal-content input:focus, .modal-content textarea:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        .empty-state-text {
+            font-size: 1.5em;
+            font-weight: 300;
         }
 
-        .modal-content input::placeholder, .modal-content textarea::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-            padding: 15px;
-        }
-
-        .section-title {
-            color: var(--accent-primary);
-            font-size: 1.2em;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-left: 4px solid var(--accent-primary);
-            padding-left: 15px;
-        }
-
-        .CodeMirror {
-            height: 400px;
-            border: 2px solid rgba(0, 255, 136, 0.2);
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        .output-box {
-            background: var(--bg-card);
-            border: 2px solid rgba(0, 255, 136, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-            min-height: 100px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 13px;
-            color: var(--text-primary);
-            margin-top: 15px;
-        }
-
-        .output-success {
-            color: var(--accent-primary);
-        }
-
-        .output-error {
-            color: var(--accent-danger);
-        }
-
-        .log-filters {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .log-filters button {
-            flex: 1;
-            min-width: 100px;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-            .players-grid {
-                grid-template-columns: 1fr;
+            .logo {
+                font-size: 2.5em;
+                letter-spacing: 4px;
             }
             
-            .controls {
-                grid-template-columns: repeat(2, 1fr);
+            .stat-number {
+                font-size: 2.5em;
             }
             
-            h1 {
-                font-size: 2em;
+            th, td {
+                padding: 12px 8px;
+                font-size: 0.9em;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
+        <!-- Header -->
+        <div class="header">
             <div class="header-content">
-                <h1>⚡ 1337 PANEL PRO ⚡</h1>
-                <p class="subtitle">🎮 Advanced Roblox Control System with Lua Executor</p>
-                <div class="stats">
-                    <div class="stat-card">
-                        <h3 id="onlineCount">0</h3>
-                        <p>🟢 Online</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="totalCount">0</h3>
-                        <p>👥 Total Players</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="commandCount">0</h3>
-                        <p>📤 Commands Sent</p>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <div id="playersContainer" class="players-grid"></div>
-    </div>
-
-    <!-- Modals -->
-    <div id="kickModal" class="modal">
-        <div class="modal-content">
-            <h3>🚪 Kick Player</h3>
-            <input type="text" id="kickReason" placeholder="Enter reason..." />
-            <div class="modal-buttons">
-                <button class="btn btn-danger" onclick="confirmKick()">Kick</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
+                <h1 class="logo glitch">👁️ SHADOW PANEL</h1>
+                <p class="subtitle">⚡ Advanced Logging System ⚡</p>
             </div>
         </div>
-    </div>
 
-    <div id="soundModal" class="modal">
-        <div class="modal-content">
-            <h3>🔊 Play Sound</h3>
-            <input type="text" id="soundAssetId" placeholder="Asset ID..." />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmSound()">Play</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card red">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" id="totalPlayers">0</div>
+                <div class="stat-label">Total Players</div>
+            </div>
+            <div class="stat-card cyan">
+                <div class="stat-icon">🟢</div>
+                <div class="stat-number" id="onlinePlayers">0</div>
+                <div class="stat-label">Online Now</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-number" id="totalExecutions">0</div>
+                <div class="stat-label">Executions</div>
             </div>
         </div>
-    </div>
 
-    <div id="speedModal" class="modal">
-        <div class="modal-content">
-            <h3>⚡ Set Speed</h3>
-            <input type="number" id="speedValue" placeholder="Speed value (default: 50)" />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmSpeed()">Set</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="flingModal" class="modal">
-        <div class="modal-content">
-            <h3>🚀 Fling Player</h3>
-            <input type="number" id="flingSpeed" placeholder="Force (default: 100)" />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmFling()">Fling</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="messageModal" class="modal">
-        <div class="modal-content">
-            <h3>💬 Send Message</h3>
-            <input type="text" id="messageText" placeholder="Enter message..." />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmMessage()">Send</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="imageModal" class="modal">
-        <div class="modal-content">
-            <h3>🖼️ Display Image</h3>
-            <input type="text" id="imageUrl" placeholder="Image URL..." />
-            <input type="number" id="imageSize" placeholder="Size (default: 200)" />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmImage()">Display</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="luaModal" class="modal">
-        <div class="modal-content large">
-            <h3>💻 LUA EXECUTOR</h3>
-            <div id="luaEditorContainer"></div>
-            <div id="luaOutput" class="output-box" style="display: none;">
-                <strong>Output:</strong><br>
-                <span id="luaOutputText"></span>
-            </div>
-            <div class="modal-buttons" style="margin-top: 20px;">
-                <button class="btn btn-success" onclick="executeLua()">▶️ Execute</button>
-                <button class="btn btn-warning" onclick="clearLuaEditor()">🗑️ Clear</button>
-                <button class="btn btn-info" onclick="closeModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="jumpModal" class="modal">
-        <div class="modal-content">
-            <h3>⬆️ Set Jump Power</h3>
-            <input type="number" id="jumpValue" placeholder="Jump power (default: 50)" />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmJump()">Set</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="teleportModal" class="modal">
-        <div class="modal-content">
-            <h3>🌀 Teleport Player</h3>
-            <input type="number" id="teleportX" placeholder="X Position" />
-            <input type="number" id="teleportY" placeholder="Y Position (height)" />
-            <input type="number" id="teleportZ" placeholder="Z Position" />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="confirmTeleport()">Teleport</button>
-                <button class="btn btn-info" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="chatModal" class="modal">
-        <div class="modal-content" style="max-width: 600px; max-height: 80vh;">
-            <h3 id="chatTitle">👁️ ADMIN CHAT</h3>
-            <div id="chatHistory" style="height: 400px; overflow-y: auto; background: var(--bg-card); border: 2px solid rgba(0,255,136,0.2); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
-                <p style="color: var(--text-secondary); text-align: center;">Loading chat history...</p>
-            </div>
-            <input type="text" id="chatMessageInput" placeholder="Type your message..." style="margin-bottom: 10px;" />
-            <div class="modal-buttons">
-                <button class="btn btn-success" onclick="sendChatMessage()">👁️ SEND</button>
-                <button class="btn btn-info" onclick="closeModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="logsModal" class="modal">
-        <div class="modal-content large" style="max-height: 85vh;">
-            <h3 id="logsTitle">📋 PLAYER LOGS</h3>
-            <div class="log-filters">
-                <button class="btn btn-info" onclick="filterLogs('all')">All</button>
-                <button class="btn btn-success" onclick="filterLogs('command')">Commands</button>
-                <button class="btn btn-purple" onclick="filterLogs('exec')">Executions</button>
-                <button class="btn btn-pink" onclick="filterLogs('chat')">Chat</button>
-                <button class="btn btn-warning" onclick="filterLogs('system')">System</button>
-            </div>
-            <div id="logsContainer" style="height: 500px; overflow-y: auto; background: var(--bg-card); border: 2px solid rgba(0,255,136,0.2); border-radius: 10px; padding: 15px;">
-                <p style="color: var(--text-secondary); text-align: center;">Loading logs...</p>
-            </div>
-            <div class="modal-buttons" style="margin-top: 20px;">
-                <button class="btn btn-danger" onclick="clearLogs()">🗑️ Clear Logs</button>
-                <button class="btn btn-success" onclick="exportLogs()">💾 Export</button>
-                <button class="btn btn-info" onclick="closeModal()">Close</button>
+        <!-- Players Table -->
+        <div class="players-section">
+            <h2 class="section-title">🎮 LOGGED PLAYERS</h2>
+            <div class="table-container">
+                <table id="playersTable">
+                    <thead>
+                        <tr>
+                            <th>👤 Avatar</th>
+                            <th>🎮 Username</th>
+                            <th>🆔 User ID</th>
+                            <th>⭐ Premium</th>
+                            <th>📅 Account Age</th>
+                            <th>🎯 Game</th>
+                            <th>💻 Platform</th>
+                            <th>🌐 IP</th>
+                            <th>⏰ Timestamp</th>
+                            <th>📊 Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playersBody">
+                        <tr>
+                            <td colspan="10" class="loading">Loading players data</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script>
-        let currentUserId = null;
-        let currentUsername = null;
-        let commandsSent = 0;
-        let chatUpdateInterval = null;
-        let luaEditor = null;
-        let currentLogs = [];
-        let logsFilter = 'all';
+        const API_URL = 'https://robloxlol-production.up.railway.app';
+        let playersData = [];
 
-        function initLuaEditor() {
-            if (!luaEditor) {
-                luaEditor = CodeMirror(document.getElementById('luaEditorContainer'), {
-                    mode: 'lua',
-                    theme: 'dracula',
-                    lineNumbers: true,
-                    autoCloseBrackets: true,
-                    matchBrackets: true,
-                    indentUnit: 4,
-                    tabSize: 4,
-                    lineWrapping: true,
-                    value: '-- Write your Lua code here\nprint("Hello from 1337 Panel!")'
-                });
-            }
-        }
-
-        async function sendCommand(userid, command, data = {}) {
+        async function fetchPlayers() {
             try {
-                const response = await fetch('/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userid, command, ...data })
-                });
-                const result = await response.json();
-                console.log('✅ Command sent:', result);
-                commandsSent++;
-                document.getElementById('commandCount').textContent = commandsSent;
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
-        }
-
-        async function sendChatToPlayer(userid, message, sender) {
-            try {
-                const response = await fetch('/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userid, 
-                        chatMessage: message,
-                        chatSender: sender
-                    })
-                });
-                const result = await response.json();
-                console.log('✅ Chat sent:', result);
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
-        }
-
-        async function loadChatHistory(userid) {
-            try {
-                const response = await fetch(`/chat/${userid}`);
-                const history = await response.json();
-                const chatDiv = document.getElementById('chatHistory');
+                const response = await fetch(`${API_URL}/players`);
+                if (!response.ok) throw new Error('Failed to fetch');
                 
-                if (history.length === 0) {
-                    chatDiv.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No messages yet. Start the conversation!</p>';
-                } else {
-                    chatDiv.innerHTML = history.map(msg => {
-                        const color = msg.isAdmin ? '#ff0055' : '#00ff88';
-                        const icon = msg.isAdmin ? '👁️' : '💬';
-                        return `<p style="color: ${color}; margin: 8px 0; font-size: 14px;"><strong>${icon} ${msg.sender}:</strong> ${msg.message}</p>`;
-                    }).join('');
-                }
-                
-                chatDiv.scrollTop = chatDiv.scrollHeight;
+                playersData = await response.json();
+                updateStats();
+                renderPlayers();
             } catch (error) {
-                console.error('❌ Error loading chat:', error);
+                console.error('Error fetching players:', error);
+                document.getElementById('playersBody').innerHTML = `
+                    <tr>
+                        <td colspan="10" class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div class="empty-state-text">Unable to load player data</div>
+                        </td>
+                    </tr>
+                `;
             }
         }
 
-        function openChatModal(userid, username) {
-            currentUserId = userid;
-            currentUsername = username;
-            document.getElementById('chatTitle').textContent = `👁️ CHAT WITH ${username}`;
-            document.getElementById('chatModal').classList.add('active');
-            loadChatHistory(userid);
+        function updateStats() {
+            const total = playersData.length;
+            const online = playersData.filter(p => p.status === 'online').length;
             
-            if (chatUpdateInterval) clearInterval(chatUpdateInterval);
-            chatUpdateInterval = setInterval(() => loadChatHistory(userid), 2000);
+            document.getElementById('totalPlayers').textContent = total;
+            document.getElementById('onlinePlayers').textContent = online;
+            document.getElementById('totalExecutions').textContent = total;
         }
 
-        function sendChatMessage() {
-            const input = document.getElementById('chatMessageInput');
-            const message = input.value.trim();
-            const adminName = prompt('Enter your admin name:', 'SYSTEM ADMIN') || 'ADMIN';
+        function renderPlayers() {
+            const tbody = document.getElementById('playersBody');
             
-            if (message && currentUserId) {
-                sendChatToPlayer(currentUserId, message, adminName);
-                input.value = '';
-                setTimeout(() => loadChatHistory(currentUserId), 500);
-            }
-        }
-
-        document.getElementById('chatMessageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendChatMessage();
-            }
-        });
-
-        function openLuaModal(userid, username) {
-            currentUserId = userid;
-            currentUsername = username;
-            initLuaEditor();
-            document.getElementById('luaModal').classList.add('active');
-            document.getElementById('luaOutput').style.display = 'none';
-        }
-
-        function clearLuaEditor() {
-            if (luaEditor) {
-                luaEditor.setValue('-- Write your Lua code here\n');
-            }
-            document.getElementById('luaOutput').style.display = 'none';
-        }
-
-        async function executeLua() {
-            if (!luaEditor || !currentUserId) return;
-            
-            const code = luaEditor.getValue();
-            const outputDiv = document.getElementById('luaOutput');
-            const outputText = document.getElementById('luaOutputText');
-            
-            outputDiv.style.display = 'block';
-            outputText.innerHTML = '<span style="color: var(--accent-warning);">⏳ Executing...</span>';
-            
-            try {
-                await sendCommand(currentUserId, 'exec', { luaCode: code });
-                
-                let attempts = 0;
-                const checkResult = setInterval(async () => {
-                    attempts++;
-                    if (attempts > 20) {
-                        clearInterval(checkResult);
-                        outputText.innerHTML = '<span class="output-error">❌ Timeout: No response from client</span>';
-                        return;
-                    }
-                    
-                    const response = await fetch(`/exec-result/${currentUserId}`);
-                    const data = await response.json();
-                    
-                    if (data.hasResult !== false) {
-                        clearInterval(checkResult);
-                        if (data.success) {
-                            outputText.innerHTML = `<span class="output-success">✅ Success:\n${data.result || 'Code executed successfully'}</span>`;
-                        } else {
-                            outputText.innerHTML = `<span class="output-error">❌ Error:\n${data.error || 'Unknown error'}</span>`;
-                        }
-                    }
-                }, 500);
-                
-            } catch (error) {
-                outputText.innerHTML = `<span class="output-error">❌ Error: ${error.message}</span>`;
-            }
-        }
-
-        async function loadLogs(userid) {
-            try {
-                const response = await fetch(`/logs/${userid}`);
-                currentLogs = await response.json();
-                displayLogs();
-            } catch (error) {
-                console.error('❌ Error loading logs:', error);
-            }
-        }
-
-        function displayLogs() {
-            const container = document.getElementById('logsContainer');
-            const filteredLogs = logsFilter === 'all' 
-                ? currentLogs 
-                : currentLogs.filter(log => log.type === logsFilter);
-            
-            if (filteredLogs.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No logs found.</p>';
+            if (playersData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="empty-state">
+                            <div class="empty-state-icon">🌐</div>
+                            <div class="empty-state-text">No players logged yet. Waiting for connections...</div>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
-            container.innerHTML = filteredLogs.map(log => {
-                const date = new Date(log.timestamp).toLocaleString();
-                let color = '#00ff88';
-                let icon = '📋';
+            tbody.innerHTML = playersData.map(player => {
+                const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${player.userid || 0}&width=150&height=150&format=png`;
+                const profileUrl = `https://www.roblox.com/users/${player.userid || 0}/profile`;
+                const premium = player.premium ? '✅' : '❌';
+                const statusClass = player.status === 'online' ? 'online' : 'offline';
+                const statusText = player.status === 'online' ? '🟢 Online' : '🔴 Offline';
                 
-                switch(log.type) {
-                    case 'command': color = '#00d4ff'; icon = '🎯'; break;
-                    case 'exec': color = '#aa00ff'; icon = '💻'; break;
-                    case 'chat': color = '#ff0099'; icon = '💬'; break;
-                    case 'system': color = '#ffaa00'; icon = '⚙️'; break;
-                }
-                
-                const detailsStr = Object.keys(log.details).length > 0 
-                    ? `<div style="margin-top: 5px; font-size: 11px; opacity: 0.8; white-space: pre-wrap;">${JSON.stringify(log.details, null, 2).substring(0, 200)}</div>`
-                    : '';
+                const platform = player.platform || 'Unknown';
+                let platformIcon = '💻';
+                if (platform.includes('Mobile')) platformIcon = '📱';
+                else if (platform.includes('Xbox')) platformIcon = '🎮';
+                else if (platform.includes('PlayStation')) platformIcon = '🎮';
                 
                 return `
-                    <div style="background: rgba(0,0,0,0.3); padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid ${color};">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <span style="color: ${color}; font-weight: bold;">${icon} ${log.type.toUpperCase()}</span>
-                                <p style="margin: 5px 0; color: #fff;">${log.action}</p>
-                                ${detailsStr}
-                            </div>
-                            <span style="color: var(--text-secondary); font-size: 11px; white-space: nowrap; margin-left: 10px;">${date}</span>
-                        </div>
-                    </div>
+                    <tr>
+                        <td>
+                            <a href="${profileUrl}" target="_blank">
+                                <img src="${avatarUrl}" alt="${player.username}" class="avatar">
+                            </a>
+                        </td>
+                        <td><strong>${player.username || 'Unknown'}</strong></td>
+                        <td><code>${player.userid || 'N/A'}</code></td>
+                        <td>${premium}</td>
+                        <td>${player.accountAge || 'N/A'} days</td>
+                        <td>${player.game || 'N/A'}</td>
+                        <td><span class="platform-icon">${platformIcon}</span> ${platform}</td>
+                        <td><code>${player.ip || 'Hidden'}</code></td>
+                        <td>${player.timestamp || 'N/A'}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                    </tr>
                 `;
             }).join('');
         }
 
-        function filterLogs(type) {
-            logsFilter = type;
-            displayLogs();
-        }
-
-        function clearLogs() {
-            if (confirm('Are you sure you want to clear all logs for this player?')) {
-                currentLogs = [];
-                displayLogs();
-            }
-        }
-
-        function exportLogs() {
-            const dataStr = JSON.stringify(currentLogs, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `logs_${currentUsername}_${Date.now()}.json`;
-            link.click();
-        }
-
-        function openLogsModal(userid, username) {
-            currentUserId = userid;
-            currentUsername = username;
-            logsFilter = 'all';
-            document.getElementById('logsTitle').textContent = `📋 LOGS - ${username}`;
-            document.getElementById('logsModal').classList.add('active');
-            loadLogs(userid);
-        }
-
-        function openKickModal(userid) {
-            currentUserId = userid;
-            document.getElementById('kickModal').classList.add('active');
-        }
-
-        function openSoundModal(userid) {
-            currentUserId = userid;
-            document.getElementById('soundModal').classList.add('active');
-        }
-
-        function openSpeedModal(userid) {
-            currentUserId = userid;
-            document.getElementById('speedModal').classList.add('active');
-        }
-
-        function openFlingModal(userid) {
-            currentUserId = userid;
-            document.getElementById('flingModal').classList.add('active');
-        }
-
-        function openMessageModal(userid) {
-            currentUserId = userid;
-            document.getElementById('messageModal').classList.add('active');
-        }
-
-        function openImageModal(userid) {
-            currentUserId = userid;
-            document.getElementById('imageModal').classList.add('active');
-        }
-
-        function openJumpModal(userid) {
-            currentUserId = userid;
-            document.getElementById('jumpModal').classList.add('active');
-        }
-
-        function openTeleportModal(userid) {
-            currentUserId = userid;
-            document.getElementById('teleportModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-            currentUserId = null;
-            currentUsername = null;
-            if (chatUpdateInterval) {
-                clearInterval(chatUpdateInterval);
-                chatUpdateInterval = null;
-            }
-        }
-
-        function confirmKick() {
-            const reason = document.getElementById('kickReason').value || 'No reason';
-            sendCommand(currentUserId, 'kick', { reason });
-            closeModal();
-        }
-
-        function confirmSound() {
-            const assetId = document.getElementById('soundAssetId').value;
-            if (assetId) {
-                sendCommand(currentUserId, 'playsound', { assetId });
-            }
-            closeModal();
-        }
-
-        function confirmSpeed() {
-            const speed = document.getElementById('speedValue').value || 50;
-            sendCommand(currentUserId, 'speed', { speed: parseInt(speed) });
-            closeModal();
-        }
-
-        function confirmFling() {
-            const speed = document.getElementById('flingSpeed').value || 100;
-            sendCommand(currentUserId, 'fling', { speed: parseInt(speed) });
-            closeModal();
-        }
-
-        function confirmMessage() {
-            const text = document.getElementById('messageText').value;
-            const adminName = prompt('Enter your admin name:', 'ANONYMOUS ADMIN') || 'SYSTEM';
-            if (text) {
-                sendCommand(currentUserId, 'msg', { text, adminName });
-            }
-            closeModal();
-        }
-
-        function confirmImage() {
-            const imageUrl = document.getElementById('imageUrl').value;
-            const size = document.getElementById('imageSize').value || 200;
-            if (imageUrl) {
-                sendCommand(currentUserId, 'image', { imageUrl, size: parseInt(size) });
-            }
-            closeModal();
-        }
-
-        function confirmJump() {
-            const power = document.getElementById('jumpValue').value || 50;
-            sendCommand(currentUserId, 'setjump', { power: parseInt(power) });
-            closeModal();
-        }
-
-        function confirmTeleport() {
-            const x = document.getElementById('teleportX').value;
-            const y = document.getElementById('teleportY').value;
-            const z = document.getElementById('teleportZ').value;
-            if (x && y && z) {
-                sendCommand(currentUserId, 'teleport', { 
-                    x: parseFloat(x), 
-                    y: parseFloat(y), 
-                    z: parseFloat(z) 
-                });
-            }
-            closeModal();
-        }
-
-        async function loadPlayers() {
-            try {
-                const response = await fetch('/players');
-                const players = await response.json();
-                const container = document.getElementById('playersContainer');
-                
-                if (players.length === 0) {
-                    container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 80px;"><h2>🌐 Awaiting Connections</h2><p>Players will appear here once they execute the script</p></div>';
-                } else {
-                    container.innerHTML = players.map(p => {
-                        const userid = p.userid;
-                        const username = p.username || 'Unknown';
-                        const status = p.status || 'offline';
-                        const game = p.game || 'N/A';
-                        const executor = p.executor || 'Unknown';
-                        const ip = p.ip || 'Unknown';
-                        
-                        return `
-                        <div class="player-card">
-                            <div class="player-header">
-                                <div class="player-info">
-                                    <h2>${username}</h2>
-                                    <div class="player-id">ID: ${userid}</div>
-                                </div>
-                                <span class="status ${status}">${status}</span>
-                            </div>
-                            <div class="player-details">
-                                <div class="detail-row"><span class="detail-label">🎮 Game</span><span class="detail-value">${game}</span></div>
-                                <div class="detail-row"><span class="detail-label">⚡ Executor</span><span class="detail-value">${executor}</span></div>
-                                <div class="detail-row"><span class="detail-label">🌐 IP</span><span class="detail-value">${ip}</span></div>
-                            </div>
-                            <div style="margin-bottom: 15px;"><div class="section-title">💻 EXECUTE LUA</div></div>
-                            <div class="controls">
-                                <button class="btn btn-purple btn-full" onclick="openLuaModal('${userid}', '${username}')">💻 Lua Executor</button>
-                            </div>
-                            <div style="margin: 20px 0 15px;"><div class="section-title">🎯 Player Control</div></div>
-                            <div class="controls">
-                                <button class="btn btn-danger" onclick="openKickModal('${userid}')">🚪 Kick</button>
-                                <button class="btn btn-warning" onclick="sendCommand('${userid}', 'freeze')">❄️ Freeze</button>
-                                <button class="btn btn-success" onclick="sendCommand('${userid}', 'unfreeze')">🔥 Unfreeze</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'jump')">⬆️ Jump</button>
-                                <button class="btn btn-purple" onclick="openJumpModal('${userid}')">🦘 Jump Power</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'resetjump')">🔄 Reset Jump</button>
-                                <button class="btn btn-purple" onclick="sendCommand('${userid}', 'spin')">🌀 Spin</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'unspin')">⏸️ Unspin</button>
-                                <button class="btn btn-success" onclick="openFlingModal('${userid}')">🚀 Fling</button>
-                            </div>
-                            <div style="margin: 20px 0 15px;"><div class="section-title">✨ Visual Effects</div></div>
-                            <div class="controls">
-                                <button class="btn btn-pink" onclick="sendCommand('${userid}', 'rainbow')">🌈 Rainbow</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'unrainbow')">⚪ Normal</button>
-                                <button class="btn btn-purple" onclick="sendCommand('${userid}', 'invisible')">👻 Invisible</button>
-                                <button class="btn btn-success" onclick="sendCommand('${userid}', 'uninvisible')">👁️ Visible</button>
-                                <button class="btn btn-danger" onclick="sendCommand('${userid}', 'explode')">💥 Explode</button>
-                                <button class="btn btn-success" onclick="openSoundModal('${userid}')">🔊 Sound</button>
-                                <button class="btn btn-warning" onclick="sendCommand('${userid}', 'stopsound')">🔇 Stop Sound</button>
-                                <button class="btn btn-pink" onclick="openImageModal('${userid}')">🖼️ Image</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'removeimage')">🗑️ Remove Image</button>
-                            </div>
-                            <div style="margin: 20px 0 15px;"><div class="section-title">⚙️ Advanced</div></div>
-                            <div class="controls">
-                                <button class="btn btn-info" onclick="openSpeedModal('${userid}')">⚡ Speed</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'resetspeed')">🔄 Reset Speed</button>
-                                <button class="btn btn-purple" onclick="sendCommand('${userid}', 'god')">🛡️ God</button>
-                                <button class="btn btn-warning" onclick="sendCommand('${userid}', 'ungod')">❤️ Ungod</button>
-                                <button class="btn btn-purple" onclick="sendCommand('${userid}', 'noclip')">👻 Noclip</button>
-                                <button class="btn btn-warning" onclick="sendCommand('${userid}', 'clipon')">🧱 Clip On</button>
-                                <button class="btn btn-info" onclick="openTeleportModal('${userid}')">🌀 Teleport</button>
-                                <button class="btn btn-success" onclick="sendCommand('${userid}', 'sit')">💺 Sit</button>
-                                <button class="btn btn-info" onclick="sendCommand('${userid}', 'unsit')">🚶 Stand</button>
-                                <button class="btn btn-info" onclick="openMessageModal('${userid}')">💬 Message</button>
-                                <button class="btn btn-pink" onclick="openChatModal('${userid}', '${username}')">👁️ Chat</button>
-                                <button class="btn btn-warning btn-full" onclick="openLogsModal('${userid}', '${username}')">📋 View Logs</button>
-                                <button class="btn btn-danger btn-full" onclick="sendCommand('${userid}', 'kill')">☠️ KILL PLAYER</button>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-                }
-
-                const onlineCount = players.filter(p => p.status === 'online').length;
-                document.getElementById('onlineCount').textContent = onlineCount;
-                document.getElementById('totalCount').textContent = players.length;
-
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
-
-        loadPlayers();
-        setInterval(loadPlayers, 1500);
+        // Auto-refresh every 3 seconds
+        fetchPlayers();
+        setInterval(fetchPlayers, 3000);
     </script>
 </body>
 </html>
