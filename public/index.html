@@ -598,9 +598,16 @@
             }).join('');
         }
 
-        // Auto-refresh every 3 seconds
+        // Auto-refresh every 2 seconds for better real-time updates
         fetchPlayers();
-        setInterval(fetchPlayers, 3000);
+        setInterval(fetchPlayers, 2000);
+        
+        // Force refresh on page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                fetchPlayers();
+            }
+        });
     </script>
 </body>
 </html>
