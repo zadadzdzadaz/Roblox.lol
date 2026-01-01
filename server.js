@@ -347,13 +347,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Nettoyage automatique des joueurs inactifs (60 secondes)
+// Nettoyage automatique des joueurs inactifs (30 secondes)
 setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
     
     for (const [userid, player] of players.entries()) {
-        if (now - player.lastSeen > 60000) {
+        if (now - player.lastSeen > 30000) {
             console.log(`🔴 [TIMEOUT] ${player.username} (${userid})`);
             addLog(userid, 'system', 'Client disconnected (timeout)', {
                 username: player.username,
@@ -370,7 +370,7 @@ setInterval(() => {
     if (cleaned > 0) {
         console.log(`🧹 [CLEANUP] Removed ${cleaned} inactive client(s)`);
     }
-}, 30000);
+}, 15000); // Vérifie toutes les 15 secondes
 
 // Nettoyage des résultats d'exécution périmés
 setInterval(() => {
