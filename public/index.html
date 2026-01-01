@@ -7,598 +7,96 @@
     <link rel="icon" href="https://media-assets.grailed.com/prd/listing/temp/d5b74d64cf634e308f6b0390537d4c91" type="image/png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #00ff41;
-            --secondary: #00d9ff;
-            --danger: #ff0055;
-            --warning: #ffaa00;
-            --bg-primary: #000000;
-            --bg-secondary: #0a0a0a;
-            --bg-card: #121212;
-            --border: #1a1a1a;
-            --text-primary: #ffffff;
-            --text-secondary: #808080;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.03;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 25px 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 40px;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-img {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            padding: 6px;
-            object-fit: cover;
-        }
-
-        .logo-text h1 {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.6em;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: var(--primary);
-            text-transform: uppercase;
-        }
-
-        .logo-text p {
-            font-size: 0.8em;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--primary); }
-            50% { opacity: 0.7; box-shadow: 0 0 0 4px transparent; }
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 24px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .stat-label {
-            font-size: 0.8em;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .stat-icon {
-            font-size: 1.5em;
-            opacity: 0.8;
-        }
-
-        .stat-value {
-            font-family: 'Space Mono', monospace;
-            font-size: 2.5em;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1;
-        }
-
-        .data-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        .section-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .section-title {
-            font-family: 'Space Mono', monospace;
-            font-size: 1em;
-            font-weight: 700;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 0.85em;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Space Mono', monospace;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .btn.danger:hover {
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 600px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: var(--bg-secondary);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        th {
-            padding: 15px;
-            text-align: left;
-            font-size: 0.75em;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background 0.2s;
-        }
-
-        tbody tr:hover {
-            background: var(--bg-secondary);
-        }
-
-        tbody tr.selected {
-            background: rgba(0, 255, 65, 0.05);
-            border-left: 3px solid var(--primary);
-        }
-
-        td {
-            padding: 15px;
-            font-size: 0.85em;
-        }
-
-        .player-cell {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            object-fit: cover;
-        }
-
-        .player-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .player-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .player-id {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            font-family: 'Space Mono', monospace;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75em;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge.online {
-            background: rgba(0, 255, 65, 0.1);
-            color: var(--primary);
-            border: 1px solid rgba(0, 255, 65, 0.3);
-        }
-
-        .badge.offline {
-            background: rgba(128, 128, 128, 0.1);
-            color: var(--text-secondary);
-            border: 1px solid rgba(128, 128, 128, 0.3);
-        }
-
-        .badge.premium {
-            background: rgba(255, 215, 0, 0.1);
-            color: #ffd700;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-btn {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
-            background: var(--bg-secondary);
-            border-radius: 4px;
-            color: var(--text-secondary);
-            font-size: 0.75em;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .action-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .action-btn.danger:hover {
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .modal-title {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.2em;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .close-btn:hover {
-            color: var(--danger);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 0.9em;
-            font-family: 'Space Mono', monospace;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .form-textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .submit-btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            border: none;
-            border-radius: 6px;
-            color: var(--bg-primary);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85em;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
-        }
-
-        .cancel-btn {
-            padding: 12px 24px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85em;
-        }
-
-        .cancel-btn:hover {
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-
-        .code-text {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85em;
-            color: var(--text-secondary);
-        }
-
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-        }
-
-        .empty-icon {
-            font-size: 3em;
-            opacity: 0.3;
-            margin-bottom: 15px;
-        }
-
-        .empty-title {
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .empty-text {
-            color: var(--text-secondary);
-            font-size: 0.85em;
-        }
-
-        .checkbox {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .command-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .command-btn {
-            padding: 12px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-            font-size: 0.85em;
-        }
-
-        .command-btn:hover {
-            border-color: var(--primary);
-            background: var(--bg-card);
-        }
-
-        .command-btn-title {
-            font-weight: 700;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .command-btn-desc {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
-
+            --primary: #00ff41; --secondary: #00d9ff; --danger: #ff0055; --warning: #ffaa00;
+            --bg-primary: #000000; --bg-secondary: #0a0a0a; --bg-card: #121212; --border: #1a1a1a;
+            --text-primary: #ffffff; --text-secondary: #808080;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); opacity: 0.03; pointer-events: none; z-index: 1; }
+        .container { max-width: 1800px; margin: 0 auto; padding: 30px 20px; position: relative; z-index: 2; }
+        header { display: flex; align-items: center; justify-content: space-between; padding: 25px 0; border-bottom: 1px solid var(--border); margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
+        .logo-section { display: flex; align-items: center; gap: 15px; }
+        .logo-img { width: 50px; height: 50px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); padding: 6px; object-fit: cover; }
+        .logo-text h1 { font-family: 'Space Mono', monospace; font-size: 1.6em; font-weight: 700; letter-spacing: 2px; color: var(--primary); text-transform: uppercase; }
+        .logo-text p { font-size: 0.8em; color: var(--text-secondary); letter-spacing: 1px; }
+        .status-indicator { display: flex; align-items: center; gap: 10px; padding: 10px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+        .status-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--primary); } 50% { opacity: 0.7; box-shadow: 0 0 0 4px transparent; } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; transition: all 0.3s ease; }
+        .stat-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .stat-label { font-size: 0.8em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .stat-icon { font-size: 1.5em; opacity: 0.8; }
+        .stat-value { font-family: 'Space Mono', monospace; font-size: 2.5em; font-weight: 700; color: var(--text-primary); line-height: 1; }
+        .data-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
+        .section-header { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .section-title { font-family: 'Space Mono', monospace; font-size: 1em; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 0.85em; cursor: pointer; transition: all 0.2s; font-family: 'Space Mono', monospace; display: flex; align-items: center; gap: 6px; }
+        .btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+        .table-wrapper { overflow-x: auto; max-height: 600px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--bg-secondary); position: sticky; top: 0; z-index: 10; }
+        th { padding: 15px; text-align: left; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.2s; }
+        tbody tr:hover { background: var(--bg-secondary); }
+        tbody tr.selected { background: rgba(0, 255, 65, 0.05); border-left: 3px solid var(--primary); }
+        td { padding: 15px; font-size: 0.85em; }
+        .player-cell { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--border); object-fit: cover; }
+        .player-info { display: flex; flex-direction: column; }
+        .player-name { font-weight: 600; color: var(--text-primary); }
+        .player-id { font-size: 0.85em; color: var(--text-secondary); font-family: 'Space Mono', monospace; }
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 0.75em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge.online { background: rgba(0, 255, 65, 0.1); color: var(--primary); border: 1px solid rgba(0, 255, 65, 0.3); }
+        .badge.offline { background: rgba(128, 128, 128, 0.1); color: var(--text-secondary); border: 1px solid rgba(128, 128, 128, 0.3); }
+        .badge.premium { background: rgba(255, 215, 0, 0.1); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); }
+        .action-buttons { display: flex; gap: 8px; }
+        .action-btn { padding: 6px 12px; border: 1px solid var(--border); background: var(--bg-secondary); border-radius: 4px; color: var(--text-secondary); font-size: 0.75em; cursor: pointer; transition: all 0.2s; }
+        .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .action-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-title { font-family: 'Space Mono', monospace; font-size: 1.2em; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+        .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 1.5em; cursor: pointer; transition: color 0.2s; }
+        .close-btn:hover { color: var(--danger); }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: 0.9em; font-family: 'Space Mono', monospace; transition: border-color 0.2s; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--primary); }
+        .form-textarea { min-height: 120px; resize: vertical; font-family: 'Space Mono', monospace; }
+        .form-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        .submit-btn { padding: 12px 24px; background: var(--primary); border: none; border-radius: 6px; color: var(--bg-primary); font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85em; }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3); }
+        .cancel-btn { padding: 12px 24px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85em; }
+        .cancel-btn:hover { border-color: var(--danger); color: var(--danger); }
+        .code-text { font-family: 'Space Mono', monospace; font-size: 0.85em; color: var(--text-secondary); }
+        .empty-state { padding: 60px 20px; text-align: center; }
+        .empty-icon { font-size: 3em; opacity: 0.3; margin-bottom: 15px; }
+        .empty-title { font-size: 1.1em; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+        .empty-text { color: var(--text-secondary); font-size: 0.85em; }
+        .checkbox { width: 18px; height: 18px; cursor: pointer; }
+        .command-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .command-btn { padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); cursor: pointer; transition: all 0.2s; text-align: left; font-size: 0.85em; }
+        .command-btn:hover { border-color: var(--primary); background: var(--bg-card); }
+        .command-btn.active { border-color: var(--primary); background: rgba(0, 255, 65, 0.1); }
+        .command-btn-title { font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .command-btn-desc { font-size: 0.85em; color: var(--text-secondary); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
         @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .command-grid {
-                grid-template-columns: 1fr;
-            }
-
-            th, td {
-                padding: 10px;
-                font-size: 0.75em;
-            }
+            header { flex-direction: column; gap: 15px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .command-grid { grid-template-columns: 1fr; }
+            th, td { padding: 10px; font-size: 0.75em; }
         }
     </style>
 </head>
@@ -683,7 +181,6 @@
         </div>
     </div>
 
-    <!-- Control Modal -->
     <div class="modal" id="controlModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -724,6 +221,22 @@
                     <div class="command-btn-title">⚙️ Execute</div>
                     <div class="command-btn-desc">Run Lua code</div>
                 </button>
+                <button class="command-btn" onclick="setCommand('god')">
+                    <div class="command-btn-title">🛡️ God Mode</div>
+                    <div class="command-btn-desc">Infinite health</div>
+                </button>
+                <button class="command-btn" onclick="setCommand('invisible')">
+                    <div class="command-btn-title">👻 Invisible</div>
+                    <div class="command-btn-desc">Hide character</div>
+                </button>
+                <button class="command-btn" onclick="setCommand('kill')">
+                    <div class="command-btn-title">💀 Kill</div>
+                    <div class="command-btn-desc">Kill character</div>
+                </button>
+                <button class="command-btn" onclick="setCommand('respawn')">
+                    <div class="command-btn-title">🔄 Respawn</div>
+                    <div class="command-btn-desc">Respawn character</div>
+                </button>
             </div>
 
             <div id="commandForm"></div>
@@ -742,6 +255,7 @@
                 if (!response.ok) throw new Error('Failed to fetch');
                 
                 playersData = await response.json();
+                console.log('Fetched players:', playersData.length);
                 updateStats();
                 renderPlayers();
             } catch (error) {
@@ -881,6 +395,9 @@
             currentCommand = cmd;
             const form = document.getElementById('commandForm');
             
+            document.querySelectorAll('.command-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.command-btn').classList.add('active');
+            
             const forms = {
                 kick: `
                     <div class="form-group">
@@ -905,4 +422,211 @@
                 teleport: `
                     <div class="form-group">
                         <label class="form-label">X Position</label>
-                        <input type="number" class="form-
+                        <input type="number" class="form-input" id="teleportX" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Y Position</label>
+                        <input type="number" class="form-input" id="teleportY" placeholder="50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Z Position</label>
+                        <input type="number" class="form-input" id="teleportZ" placeholder="0">
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Teleport</button>
+                    </div>
+                `,
+                speed: `
+                    <div class="form-group">
+                        <label class="form-label">Walk Speed</label>
+                        <input type="number" class="form-input" id="speedValue" placeholder="16" value="16">
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Set Speed</button>
+                    </div>
+                `,
+                jump: `
+                    <div class="form-group">
+                        <label class="form-label">Jump Power</label>
+                        <input type="number" class="form-input" id="jumpPower" placeholder="50" value="50">
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Set Jump</button>
+                    </div>
+                `,
+                chat: `
+                    <div class="form-group">
+                        <label class="form-label">Chat Message</label>
+                        <textarea class="form-textarea" id="chatMessage" placeholder="Enter message to send in chat..."></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Send Chat</button>
+                    </div>
+                `,
+                execute: `
+                    <div class="form-group">
+                        <label class="form-label">Lua Code</label>
+                        <textarea class="form-textarea" id="luaCode" placeholder="Enter Lua code to execute..." style="min-height: 200px; font-family: 'Courier New', monospace;"></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Execute</button>
+                    </div>
+                `,
+                freeze: `
+                    <div class="form-group">
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">This will freeze the player's character in place.</p>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Freeze</button>
+                    </div>
+                `,
+                god: `
+                    <div class="form-group">
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">This will give the player infinite health.</p>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Enable God Mode</button>
+                    </div>
+                `,
+                invisible: `
+                    <div class="form-group">
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">This will make the player's character invisible.</p>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Make Invisible</button>
+                    </div>
+                `,
+                kill: `
+                    <div class="form-group">
+                        <p style="color: var(--danger); font-size: 0.9em;">⚠️ This will kill the player's character.</p>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Kill</button>
+                    </div>
+                `,
+                respawn: `
+                    <div class="form-group">
+                        <p style="color: var(--text-secondary); font-size: 0.9em;">This will respawn the player's character.</p>
+                    </div>
+                    <div class="form-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                        <button class="submit-btn" onclick="executeCommand()">Respawn</button>
+                    </div>
+                `
+            };
+            
+            form.innerHTML = forms[cmd] || '';
+        }
+
+        async function executeCommand() {
+            const userids = Array.from(selectedPlayers);
+            if (userids.length === 0) {
+                alert('No clients selected');
+                return;
+            }
+
+            let commandData = { userids, command: currentCommand };
+
+            switch(currentCommand) {
+                case 'kick':
+                    commandData.reason = document.getElementById('kickReason').value || 'Kicked by admin';
+                    break;
+                case 'message':
+                    commandData.text = document.getElementById('messageText').value;
+                    if (!commandData.text) {
+                        alert('Please enter a message');
+                        return;
+                    }
+                    break;
+                case 'teleport':
+                    commandData.x = document.getElementById('teleportX').value;
+                    commandData.y = document.getElementById('teleportY').value;
+                    commandData.z = document.getElementById('teleportZ').value;
+                    break;
+                case 'speed':
+                    commandData.speed = document.getElementById('speedValue').value;
+                    break;
+                case 'jump':
+                    commandData.power = document.getElementById('jumpPower').value;
+                    break;
+                case 'chat':
+                    commandData.chatMessage = document.getElementById('chatMessage').value;
+                    if (!commandData.chatMessage) {
+                        alert('Please enter a chat message');
+                        return;
+                    }
+                    break;
+                case 'execute':
+                    commandData.luaCode = document.getElementById('luaCode').value;
+                    if (!commandData.luaCode) {
+                        alert('Please enter Lua code');
+                        return;
+                    }
+                    break;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/command`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(commandData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(`Command sent to ${result.count} client(s)!`);
+                    closeModal();
+                } else {
+                    alert('Failed to send command: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to send command');
+            }
+        }
+
+        async function deletePlayer(userid) {
+            if (!confirm('Are you sure you want to delete this player?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/player/${userid}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Player deleted successfully');
+                    fetchPlayers();
+                } else {
+                    alert('Failed to delete player');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to delete player');
+            }
+        }
+
+        // Auto-refresh every 2 seconds
+        fetchPlayers();
+        setInterval(fetchPlayers, 2000);
+        
+        // Force refresh on page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                fetchPlayers();
+            }
+        });
+    </script>
+</body>
+</html
