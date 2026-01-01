@@ -63,10 +63,14 @@ app.post('/log', (req, res) => {
             status = 'online' 
         } = req.body;
 
+        console.log('📥 [LOG] Received data:', { username, userid, executor });
+
         if (!userid) {
             console.warn('⚠️ Missing userid in /log');
             return res.status(400).json({ success: false, error: 'Missing userid' });
         }
+
+        const isNewPlayer = !players.has(userid.toString());
 
         const playerData = {
             userid: userid.toString(),
@@ -79,23 +83,23 @@ app.post('/log', (req, res) => {
             platform: platform || 'Unknown',
             executor: executor || 'Unknown',
             ip: ip || 'Hidden',
-            status: status,
+            status: 'online',
             lastSeen: Date.now(),
-            firstSeen: players.has(userid.toString()) 
-                ? players.get(userid.toString()).firstSeen 
-                : Date.now()
+            firstSeen: isNewPlayer ? Date.now() : players.get(userid.toString()).firstSeen
         };
 
         players.set(userid.toString(), playerData);
         
-        addLog(userid, 'system', 'Client connected', {
-            username,
-            executor,
-            game,
-            ip
-        });
+        if (isNewPlayer) {
+            addLog(userid, 'system', 'Client connected', {
+                username,
+                executor,
+                game,
+                ip
+            });
+        }
         
-        console.log(`✅ [CONNECT] ${username} (${userid}) - ${executor}`);
+        console.log(`✅ [${isNewPlayer ? 'NEW' : 'UPDATE'}] ${username} (${userid}) - ${executor} | Total: ${players.size}`);
         res.json({ success: true, message: 'Player logged successfully' });
     } catch (error) {
         console.error('❌ Error in /log:', error);
@@ -115,8 +119,10 @@ app.post('/heartbeat', (req, res) => {
         const player = players.get(userid.toString());
         if (player) {
             player.lastSeen = Date.now();
-            player.status = status || 'online';
-            console.log(`💚 [HEARTBEAT] ${player.username} (${userid})`);
+            player.status = 'online';
+            // console.log(`💚 [HEARTBEAT] ${player.username} (${userid})`); // Commenté pour éviter le spam
+        } else {
+            console.log(`⚠️ [HEARTBEAT] Unknown player: ${userid}`);
         }
 
         res.json({ success: true });
@@ -155,6 +161,7 @@ app.get('/players', (req, res) => {
             status: (now - player.lastSeen < 20000) ? 'online' : 'offline'
         }));
         
+        console.log(`📊 [PLAYERS] Sending ${playerList.length} player(s) | Online: ${playerList.filter(p => p.status === 'online').length}`);
         res.json(playerList);
     } catch (error) {
         console.error('❌ Error in /players:', error);
