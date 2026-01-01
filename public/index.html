@@ -88,6 +88,15 @@
         .command-btn.active { border-color: var(--primary); background: rgba(0, 255, 65, 0.1); }
         .command-btn-title { font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
         .command-btn-desc { font-size: 0.85em; color: var(--text-secondary); }
+        .logs-container { max-height: 400px; overflow-y: auto; padding: 20px; }
+        .log-entry { padding: 12px; background: var(--bg-secondary); border-left: 3px solid var(--border); margin-bottom: 10px; border-radius: 4px; font-size: 0.85em; transition: all 0.2s; }
+        .log-entry:hover { border-left-color: var(--primary); background: var(--bg-primary); }
+        .log-entry.success { border-left-color: var(--primary); }
+        .log-entry.error { border-left-color: var(--danger); }
+        .log-entry.warning { border-left-color: var(--warning); }
+        .log-time { color: var(--text-secondary); font-family: 'Space Mono', monospace; font-size: 0.9em; margin-bottom: 4px; }
+        .log-message { color: var(--text-primary); }
+        .log-details { color: var(--text-secondary); font-size: 0.9em; margin-top: 4px; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-secondary); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -133,6 +142,13 @@
             </div>
             <div class="stat-card">
                 <div class="stat-header">
+                    <span class="stat-label">Peak Clients</span>
+                    <span class="stat-icon">📈</span>
+                </div>
+                <div class="stat-value" id="peakPlayers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
                     <span class="stat-label">Selected</span>
                     <span class="stat-icon">✓</span>
                 </div>
@@ -146,7 +162,7 @@
                 <div class="button-group">
                     <button class="btn" onclick="selectAll()">✓ Select All</button>
                     <button class="btn" onclick="deselectAll()">✗ Deselect All</button>
-                    <button class="btn" onclick="showBulkActions()"> Bulk Actions</button>
+                    <button class="btn" onclick="showBulkActions()">⚡ Bulk Actions</button>
                     <button class="btn" onclick="fetchPlayers()">↻ Refresh</button>
                 </div>
             </div>
@@ -177,6 +193,20 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <div class="section-header">
+                <h2 class="section-title">Activity Logs</h2>
+                <button class="btn" onclick="clearLogs()">🗑️ Clear Logs</button>
+            </div>
+            <div class="logs-container" id="logsContainer">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <div class="empty-title">No Logs Yet</div>
+                    <div class="empty-text">Activity will appear here...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -248,18 +278,74 @@
         let playersData = [];
         let selectedPlayers = new Set();
         let currentCommand = null;
+        let peakPlayers = 0;
+        let logs = [];
+
+        function addLog(type, message, details = '') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.unshift({ type, message, details, timestamp });
+            if (logs.length > 50) logs.pop();
+            updateLogs();
+        }
+
+        function updateLogs() {
+            const container = document.getElementById('logsContainer');
+            if (logs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-title">No Logs Yet</div>
+                        <div class="empty-text">Activity will appear here...</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = logs.map(log => `
+                <div class="log-entry ${log.type}">
+                    <div class="log-time">${log.timestamp}</div>
+                    <div class="log-message">${log.message}</div>
+                    ${log.details ? `<div class="log-details">${log.details}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function clearLogs() {
+            if (confirm('Clear all logs?')) {
+                logs = [];
+                updateLogs();
+                addLog('success', 'Logs cleared', '');
+            }
+        }
 
         async function fetchPlayers() {
             try {
                 const response = await fetch(`${API_URL}/players`);
                 if (!response.ok) throw new Error('Failed to fetch');
                 
+                const oldCount = playersData.length;
                 playersData = await response.json();
+                const newCount = playersData.length;
+                
+                if (newCount > peakPlayers) {
+                    peakPlayers = newCount;
+                }
+                
+                if (newCount > oldCount) {
+                    const newPlayers = playersData.filter(p => !playersData.slice(0, oldCount).find(old => old.userid === p.userid));
+                    newPlayers.forEach(p => {
+                        addLog('success', `New client connected: ${p.username}`, `Executor: ${p.executor} | Game: ${p.game}`);
+                    });
+                } else if (newCount < oldCount) {
+                    addLog('warning', `Client disconnected`, `Total clients: ${newCount}`);
+                }
+                
                 console.log('Fetched players:', playersData.length);
                 updateStats();
                 renderPlayers();
             } catch (error) {
                 console.error('Error:', error);
+                addLog('error', 'Connection error', 'Unable to connect to server');
                 document.getElementById('playersBody').innerHTML = `
                     <tr><td colspan="9">
                         <div class="empty-state">
@@ -278,6 +364,7 @@
             
             document.getElementById('totalPlayers').textContent = total;
             document.getElementById('onlinePlayers').textContent = online;
+            document.getElementById('peakPlayers').textContent = peakPlayers;
             document.getElementById('selectedCount').textContent = selectedPlayers.size;
         }
 
@@ -579,13 +666,16 @@
 
                 const result = await response.json();
                 if (result.success) {
+                    addLog('success', `Command "${currentCommand}" sent to ${result.count} client(s)`, `Selected: ${userids.join(', ')}`);
                     alert(`Command sent to ${result.count} client(s)!`);
                     closeModal();
                 } else {
+                    addLog('error', 'Failed to send command', result.error);
                     alert('Failed to send command: ' + result.error);
                 }
             } catch (error) {
                 console.error('Error:', error);
+                addLog('error', 'Failed to send command', error.message);
                 alert('Failed to send command');
             }
         }
@@ -602,18 +692,22 @@
 
                 const result = await response.json();
                 if (result.success) {
+                    addLog('warning', `Player deleted: ${userid}`, 'Removed from database');
                     alert('Player deleted successfully');
                     fetchPlayers();
                 } else {
+                    addLog('error', 'Failed to delete player', result.error);
                     alert('Failed to delete player');
                 }
             } catch (error) {
                 console.error('Error:', error);
+                addLog('error', 'Failed to delete player', error.message);
                 alert('Failed to delete player');
             }
         }
 
         // Auto-refresh every 2 seconds
+        addLog('success', 'Y2K RAT Panel initialized', 'Auto-refresh enabled');
         fetchPlayers();
         setInterval(fetchPlayers, 2000);
         
