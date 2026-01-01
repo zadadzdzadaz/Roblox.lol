@@ -1,7 +1,7 @@
 {
   "name": "y2k-rat",
   "version": "1.0.0",
-  "description": "Y2K RAT - Remote Access Terminal for Roblox Monitoring",
+  "description": "Y2K RAT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -18,7 +18,7 @@
     "logger",
     "control-panel"
   ],
-  "author": "Anonymous",
+  "author": "Y2k",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
