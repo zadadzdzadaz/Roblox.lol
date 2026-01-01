@@ -534,9 +534,29 @@
             const total = playersData.length;
             const online = playersData.filter(p => p.status === 'online').length;
             
-            document.getElementById('totalPlayers').textContent = total;
-            document.getElementById('onlinePlayers').textContent = online;
-            document.getElementById('totalExecutions').textContent = total;
+            // Animation des chiffres
+            animateValue('totalPlayers', parseInt(document.getElementById('totalPlayers').textContent), total);
+            animateValue('onlinePlayers', parseInt(document.getElementById('onlinePlayers').textContent), online);
+            animateValue('totalExecutions', parseInt(document.getElementById('totalExecutions').textContent), total);
+        }
+        
+        function animateValue(id, start, end) {
+            if (start === end) return;
+            const element = document.getElementById(id);
+            const duration = 500;
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    element.textContent = end;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.round(current);
+                }
+            }, 16);
         }
 
         function renderPlayers() {
