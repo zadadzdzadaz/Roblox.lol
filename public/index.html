@@ -298,7 +298,6 @@
             }
 
             tbody.innerHTML = playersData.map(player => {
-                const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${player.userid || 0}&width=150&height=150&format=png`;
                 const statusClass = player.status === 'online' ? 'online' : 'offline';
                 const statusText = player.status === 'online' ? '🟢 Online' : '⚫ Offline';
                 const premium = player.premium ? '<span class="badge premium">★ Premium</span>' : '—';
@@ -308,12 +307,9 @@
                     <tr class="${isSelected ? 'selected' : ''}" data-userid="${player.userid}">
                         <td><input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''} onchange="togglePlayer('${player.userid}')"></td>
                         <td>
-                            <div class="player-cell">
-                                <img src="${avatarUrl}" alt="${player.username}" class="avatar">
-                                <div class="player-info">
-                                    <span class="player-name">${player.username || 'Unknown'}</span>
-                                    <span class="player-id">${player.userid || 'N/A'}</span>
-                                </div>
+                            <div class="player-info">
+                                <span class="player-name">${player.username || 'Unknown'}</span>
+                                <span class="player-id">${player.userid || 'N/A'}</span>
                             </div>
                         </td>
                         <td><span class="code-text">${player.userid || 'N/A'}</span></td>
